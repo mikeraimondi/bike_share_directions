@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 
 	"appengine"
@@ -18,40 +19,78 @@ func init() {
 	http.HandleFunc("/hw", hubway)
 }
 
-func geocode(address string, c *appengine.Context, gChan chan Geocode) {
-	u, _ := url.Parse("maps.googleapis.com/maps/api/geocode/json")
-	u.Scheme = "https"
-	q := u.Query()
-	q.Set("key", googleKey)
-	q.Set("address", address)
-	u.RawQuery = q.Encode()
-	client := urlfetch.Client(*c)
-	resp, err := client.Get(u.String())
-	if err != nil {
-		// TODO error handling
-		return
+func gen(c *appengine.Context, addresses ...string) <-chan Geocode {
+	out := make(chan Geocode)
+	go func() {
+		for _, address := range addresses {
+			out <- Geocode{address: address, context: c}
+		}
+		close(out)
+	}()
+	return out
+}
+
+func geocode(in <-chan Geocode) <-chan Geocode {
+	out := make(chan Geocode)
+	go func() {
+		for n := range in {
+			u, _ := url.Parse("maps.googleapis.com/maps/api/geocode/json")
+			u.Scheme = "https"
+			q := u.Query()
+			q.Set("key", googleKey)
+			q.Set("address", n.address)
+			u.RawQuery = q.Encode()
+			client := urlfetch.Client(*n.context)
+			resp, err := client.Get(u.String())
+			if err != nil {
+				// TODO error handling
+				return
+			}
+			gc := Geocode{}
+			if err := json.NewDecoder(resp.Body).Decode(&gc); err != nil {
+				// TODO error handling
+				return
+			}
+			out <- gc
+		}
+		close(out)
+	}()
+	return out
+}
+
+func merge(cs ...<-chan Geocode) <-chan Geocode {
+	var wg sync.WaitGroup
+	out := make(chan Geocode)
+
+	output := func(c <-chan Geocode) {
+		for n := range c {
+			out <- n
+		}
+		wg.Done()
 	}
-	gc := Geocode{}
-	if err := json.NewDecoder(resp.Body).Decode(&gc); err != nil {
-		// TODO error handling
-		return
+	wg.Add(len(cs))
+	for _, c := range cs {
+		go output(c)
 	}
-	gChan <- gc
-	return
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+	return out
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-
-	gChan := make(chan Geocode)
-
-	go geocode(r.FormValue("origin"), &c, gChan)
-	go geocode(r.FormValue("destination"), &c, gChan)
+	in := gen(&c, r.FormValue("origin"), r.FormValue("destination"))
+	ch1 := geocode(in)
+	ch2 := geocode(in)
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	var sl []Geocode
-	sl = append(sl, <-gChan)
-	sl = append(sl, <-gChan)
+	for n := range merge(ch1, ch2) {
+		sl = append(sl, n)
+	}
 	json.NewEncoder(w).Encode(sl)
 	return
 }

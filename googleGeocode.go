@@ -5,6 +5,8 @@ import "appengine"
 type Geocode struct {
 	Status  string          `json:"status"`
 	Results []GeocodeResult `json:"results"`
+	context *appengine.Context
+	address string
 }
 
 type GeocodeResult struct {
