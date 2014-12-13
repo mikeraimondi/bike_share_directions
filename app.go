@@ -19,19 +19,19 @@ func init() {
 	http.HandleFunc("/hw", hubway)
 }
 
-func gen(c *appengine.Context, addresses ...string) <-chan Geocode {
-	out := make(chan Geocode)
+func gen(c *appengine.Context, addresses ...string) <-chan endpoint {
+	out := make(chan endpoint)
 	go func() {
 		for _, address := range addresses {
-			out <- Geocode{address: address, context: c}
+			out <- endpoint{address: address, context: c}
 		}
 		close(out)
 	}()
 	return out
 }
 
-func geocode(in <-chan Geocode) <-chan Geocode {
-	out := make(chan Geocode)
+func geocode(in <-chan endpoint) <-chan endpoint {
+	out := make(chan endpoint)
 	go func() {
 		for n := range in {
 			u, _ := url.Parse("maps.googleapis.com/maps/api/geocode/json")
@@ -51,18 +51,19 @@ func geocode(in <-chan Geocode) <-chan Geocode {
 				// TODO error handling
 				return
 			}
-			out <- gc
+			n.geocode = gc
+			out <- n
 		}
 		close(out)
 	}()
 	return out
 }
 
-func merge(cs ...<-chan Geocode) <-chan Geocode {
+func merge(cs ...<-chan endpoint) <-chan endpoint {
 	var wg sync.WaitGroup
-	out := make(chan Geocode)
+	out := make(chan endpoint)
 
-	output := func(c <-chan Geocode) {
+	output := func(c <-chan endpoint) {
 		for n := range c {
 			out <- n
 		}
@@ -87,11 +88,11 @@ func root(w http.ResponseWriter, r *http.Request) {
 	ch2 := geocode(in)
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	var sl []Geocode
+	var gc []Geocode
 	for n := range merge(ch1, ch2) {
-		sl = append(sl, n)
+		gc = append(gc, n.geocode)
 	}
-	json.NewEncoder(w).Encode(sl)
+	json.NewEncoder(w).Encode(gc)
 	return
 }
 
