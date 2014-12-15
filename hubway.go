@@ -1,5 +1,11 @@
 package app
 
+import (
+	"math"
+
+	"appengine"
+)
+
 type StationList struct {
 	Stations []Station `xml:"station"`
 }
@@ -10,7 +16,7 @@ type Station struct {
 	TerminalName       string  `xml:"terminalName"`
 	LastCommWithServer uint64  `xml:"lastCommWithServer"`
 	Lat                float64 `xml:"lat"`
-	Long               float64 `xml:"long"`
+	Lng                float64 `xml:"long"`
 	Installed          bool    `xml:"installed"`
 	Locked             bool    `xml:"locked"`
 	InstallDate        uint64  `xml:"installDate"`
@@ -30,4 +36,14 @@ func (sl *StationList) good() {
 		}
 	}
 	sl.Stations = a
+}
+
+func (sl *StationList) closestStationTo(point *appengine.GeoPoint) *Station {
+	best := sl.Stations[0]
+	for _, station := range sl.Stations {
+		if math.Abs(point.Lat-station.Lat)+math.Abs(point.Lng-station.Lng) < math.Abs(point.Lat-best.Lat)+math.Abs(point.Lng-best.Lng) {
+			best = station
+		}
+	}
+	return &best
 }
