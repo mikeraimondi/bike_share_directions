@@ -19,12 +19,11 @@ func init() {
 	http.HandleFunc("/hw", hubway)
 }
 
-func gen(c *appengine.Context, addresses ...string) <-chan endpoint {
+func gen(c *appengine.Context, origin string, destination string) <-chan endpoint {
 	out := make(chan endpoint)
 	go func() {
-		for _, address := range addresses {
-			out <- endpoint{address: address, context: c}
-		}
+		out <- endpoint{address: origin, origin: true, context: c}
+		out <- endpoint{address: destination, origin: false, context: c}
 		close(out)
 	}()
 	return out
@@ -99,8 +98,13 @@ func stationDirections(in <-chan endpoint) <-chan endpoint {
 			u, _ := url.Parse("maps.googleapis.com/maps/api/directions/json")
 			u.Scheme = "https"
 			q := u.Query()
-			q.Set("origin", endpoint.address)
-			q.Set("destination", strconv.FormatFloat(endpoint.nearestStation.Lat, 'f', -1, 64)+","+strconv.FormatFloat(endpoint.nearestStation.Lng, 'f', -1, 64))
+			if endpoint.origin {
+				q.Set("origin", endpoint.address)
+				q.Set("destination", endpoint.nearestStation.stringCoords())
+			} else {
+				q.Set("origin", endpoint.nearestStation.stringCoords())
+				q.Set("destination", endpoint.address)
+			}
 			q.Set("key", googleKey)
 			q.Set("mode", "walking")
 			// q.Set("departure_time", strconv.FormatInt(time.Now().Unix(), 10))
@@ -145,6 +149,29 @@ func merge(cs ...<-chan endpoint) <-chan endpoint {
 	return out
 }
 
+func stationToStation(origin *endpoint, destination *endpoint) (d *Direction, err error) {
+	client := urlfetch.Client(*origin.context)
+	u, _ := url.Parse("maps.googleapis.com/maps/api/directions/json")
+	u.Scheme = "https"
+	q := u.Query()
+	q.Set("origin", origin.nearestStation.stringCoords())
+	q.Set("destination", destination.nearestStation.stringCoords())
+	q.Set("key", googleKey)
+	q.Set("mode", "bicycling")
+	u.RawQuery = q.Encode()
+	resp, err := client.Get(u.String())
+	if err != nil {
+		// TODO error handling
+		return nil, err
+	}
+	// d Direction
+	if err := json.NewDecoder(resp.Body).Decode(&d); err != nil {
+		// TODO error handling
+		return nil, err
+	}
+	return d, nil
+}
+
 func root(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	in := gen(&c, r.FormValue("origin"), r.FormValue("destination"))
@@ -152,9 +179,23 @@ func root(w http.ResponseWriter, r *http.Request) {
 	ch2 := stationDirections(findNearestStation(geocode(in)))
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	var s []Direction
+	var t trip
 	for endpoint := range merge(ch1, ch2) {
-		s = append(s, endpoint.directionsToStation)
+		if endpoint.origin {
+			t.origin = endpoint
+		} else {
+			t.destination = endpoint
+		}
+	}
+	d, _ := stationToStation(&t.origin, &t.destination)
+	s := struct {
+		DirectionsToStation   Direction
+		InterStation          Direction
+		DirectionsFromStation Direction
+	}{
+		t.origin.directionsToStation,
+		*d,
+		t.destination.directionsToStation,
 	}
 	json.NewEncoder(w).Encode(s)
 	return

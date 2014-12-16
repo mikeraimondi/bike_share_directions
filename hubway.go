@@ -2,6 +2,7 @@ package app
 
 import (
 	"math"
+	"strconv"
 
 	"appengine"
 )
@@ -46,4 +47,8 @@ func (sl *StationList) closestStationTo(point *appengine.GeoPoint) *Station {
 		}
 	}
 	return &best
+}
+
+func (s *Station) stringCoords() string {
+	return strconv.FormatFloat(s.Lat, 'f', -1, 64) + "," + strconv.FormatFloat(s.Lng, 'f', -1, 64)
 }
