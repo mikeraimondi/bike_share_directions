@@ -3,20 +3,18 @@ package app
 import (
 	"encoding/json"
 	"encoding/xml"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
-	"time"
 
 	"appengine"
+	"appengine/memcache"
 	"appengine/urlfetch"
 )
 
 func init() {
 	http.HandleFunc("/", root)
-	http.HandleFunc("/gd", googleDirections)
-	http.HandleFunc("/hw", hubway)
 }
 
 func gen(c *appengine.Context, origin string, destination string) <-chan endpoint {
@@ -64,18 +62,37 @@ func findNearestStation(in <-chan endpoint) <-chan endpoint {
 		for endpoint := range in {
 			// TODO guard endpoint.geocode
 
-			// TODO cache hubway results
-			u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
-			u.Scheme = "https"
-			client := urlfetch.Client(*endpoint.context)
-			resp, err := client.Get(u.String())
-			if err != nil {
+			var hwData []byte
+			// TODO some kind of lock?
+			if item, err := memcache.Get(*endpoint.context, "hubway"); err == memcache.ErrCacheMiss {
+				(*endpoint.context).Infof("item not in the cache")
+				u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
+				u.Scheme = "https"
+				client := urlfetch.Client(*endpoint.context)
+				resp, err := client.Get(u.String())
+				if err != nil {
+					(*endpoint.context).Errorf("error GET hubway XML: %v", err)
+					return
+				}
 				// TODO error handling
-				return
+				if hwData, err = ioutil.ReadAll(resp.Body); err != nil {
+					(*endpoint.context).Errorf("error reading Hubway response: %v", err)
+				}
+				newItem := &memcache.Item{
+					Key:   "hubway",
+					Value: hwData,
+				}
+				if err := memcache.Set(*endpoint.context, newItem); err != nil {
+					(*endpoint.context).Errorf("error setting item: %v", err)
+				}
+			} else if err != nil {
+				(*endpoint.context).Errorf("error getting item: %v", err)
+			} else {
+				hwData = item.Value
 			}
 			var sl StationList
-			if err := xml.NewDecoder(resp.Body).Decode(&sl); err != nil {
-				// TODO error handling
+			if err := xml.Unmarshal(hwData, &sl); err != nil {
+				(*endpoint.context).Errorf("error unmarshaling Hubway XML: %v", err)
 				return
 			}
 			// TODO refactor function
@@ -197,60 +214,6 @@ func root(w http.ResponseWriter, r *http.Request) {
 		*d,
 		t.destination.directionsToStation,
 	}
-	json.NewEncoder(w).Encode(s)
-	return
-}
-
-func googleDirections(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	client := urlfetch.Client(c)
-	u, err := url.Parse("maps.googleapis.com/maps/api/directions/json")
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-	}
-	u.Scheme = "https"
-	q := u.Query()
-	q.Set("origin", r.FormValue("origin"))
-	q.Set("destination", r.FormValue("destination"))
-	q.Set("key", googleKey)
-	q.Set("mode", "walking")
-	q.Set("departure_time", strconv.FormatInt(time.Now().Unix(), 10))
-	u.RawQuery = q.Encode()
-	resp, err := client.Get(u.String())
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	var d Direction
-	if err := json.NewDecoder(resp.Body).Decode(&d); err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(w).Encode(d)
-	return
-}
-
-func hubway(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	client := urlfetch.Client(c)
-	u, err := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-	}
-	u.Scheme = "https"
-	resp, err := client.Get(u.String())
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	var s StationList
-	if err := xml.NewDecoder(resp.Body).Decode(&s); err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	s.good()
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(s)
 	return
 }
