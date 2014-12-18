@@ -3,13 +3,11 @@ package app
 import (
 	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sync"
 
 	"appengine"
-	"appengine/memcache"
 	"appengine/urlfetch"
 )
 
@@ -62,33 +60,9 @@ func findNearestStation(in <-chan endpoint) <-chan endpoint {
 		for endpoint := range in {
 			// TODO guard endpoint.geocode
 
-			var hwData []byte
-			// TODO some kind of lock?
-			if item, err := memcache.Get(*endpoint.context, "hubway"); err == memcache.ErrCacheMiss {
-				(*endpoint.context).Infof("item not in the cache")
-				u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
-				u.Scheme = "https"
-				client := urlfetch.Client(*endpoint.context)
-				resp, err := client.Get(u.String())
-				if err != nil {
-					(*endpoint.context).Errorf("error GET hubway XML: %v", err)
-					return
-				}
-				// TODO error handling
-				if hwData, err = ioutil.ReadAll(resp.Body); err != nil {
-					(*endpoint.context).Errorf("error reading Hubway response: %v", err)
-				}
-				newItem := &memcache.Item{
-					Key:   "hubway",
-					Value: hwData,
-				}
-				if err := memcache.Set(*endpoint.context, newItem); err != nil {
-					(*endpoint.context).Errorf("error setting item: %v", err)
-				}
-			} else if err != nil {
-				(*endpoint.context).Errorf("error getting item: %v", err)
-			} else {
-				hwData = item.Value
+			hwData, err := getHubwayData(endpoint.context)
+			if err != nil {
+				(*endpoint.context).Errorf("error getting Hubway station data: %v", err)
 			}
 			var sl StationList
 			if err := xml.Unmarshal(hwData, &sl); err != nil {
