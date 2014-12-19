@@ -1,16 +1,13 @@
 package app
 
 import (
-	"io/ioutil"
+	"encoding/xml"
 	"math"
+	"net/http"
 	"net/url"
 	"strconv"
-	"sync"
-	"time"
 
 	"appengine"
-	"appengine/memcache"
-	"appengine/urlfetch"
 )
 
 // A StationList is a collection of Hubway stations
@@ -61,36 +58,17 @@ func (s *Station) stringCoords() string {
 	return strconv.FormatFloat(s.Lat, 'f', -1, 64) + "," + strconv.FormatFloat(s.Lng, 'f', -1, 64)
 }
 
-var cacheLock sync.Mutex
-
-func getHubwayData(c *appengine.Context) (hwData []byte, err error) {
-	cacheLock.Lock()
-	defer cacheLock.Unlock()
-	if item, err := memcache.Get(*c, "hubway"); err == memcache.ErrCacheMiss {
-		(*c).Infof("Hubway station info cache miss")
-		u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
-		u.Scheme = "https"
-		client := urlfetch.Client(*c)
-		resp, err := client.Get(u.String())
-		if err != nil {
-			return hwData, err
-		}
-		if hwData, err = ioutil.ReadAll(resp.Body); err != nil {
-			return hwData, err
-		}
-		newItem := &memcache.Item{
-			Key:        "hubway",
-			Value:      hwData,
-			Expiration: time.Minute,
-		}
-		if err := memcache.Set(*c, newItem); err != nil {
-			return hwData, err
-		}
-		return hwData, nil
-	} else if err != nil {
-		return hwData, err
-	} else {
-		hwData = item.Value
-		return hwData, nil
+// TODO extract to library
+func getHubwayData(transport http.RoundTripper) (stations *StationList, err error) {
+	u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
+	u.Scheme = "https"
+	client := http.Client{Transport: transport}
+	resp, err := client.Get(u.String())
+	if err != nil {
+		return stations, err
 	}
+	if err := xml.NewDecoder(resp.Body).Decode(&stations); err != nil {
+		return stations, err
+	}
+	return stations, nil
 }

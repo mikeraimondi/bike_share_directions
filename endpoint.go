@@ -1,6 +1,10 @@
 package app
 
-import "appengine"
+import (
+	"net/http"
+
+	"appengine"
+)
 
 type trip struct {
 	origin      endpoint
@@ -14,4 +18,5 @@ type endpoint struct {
 	directionsToStation Direction
 	origin              bool
 	context             *appengine.Context
+	client              *http.Client
 }
