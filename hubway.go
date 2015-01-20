@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"encoding/xml"
@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-
-	"appengine"
 )
 
 // A StationList is a collection of Hubway stations
@@ -44,7 +42,7 @@ func (sl *StationList) good() {
 	sl.Stations = a
 }
 
-func (sl *StationList) closestStationTo(point *appengine.GeoPoint) *Station {
+func (sl *StationList) closestStationTo(point *GeoPoint) *Station {
 	best := sl.Stations[0]
 	for _, station := range sl.Stations {
 		if math.Abs(point.Lat-station.Lat)+math.Abs(point.Lng-station.Lng) < math.Abs(point.Lat-best.Lat)+math.Abs(point.Lng-best.Lng) {

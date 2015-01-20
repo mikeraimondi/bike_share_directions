@@ -1,28 +1,33 @@
-package app
+package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
-
-	"github.com/gregjones/httpcache"
-	"github.com/gregjones/httpcache/memcache"
-
-	"appengine"
-	"appengine/urlfetch"
 )
 
+var googleKey string
+
 func init() {
-	http.HandleFunc("/", root)
+	googleKey = os.Getenv("gkey")
 }
 
-func gen(c *appengine.Context, origin string, destination string) <-chan endpoint {
+func main() {
+	http.HandleFunc("/", root)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
+
+func gen(origin string, destination string) <-chan endpoint {
 	out := make(chan endpoint)
-	client := urlfetch.Client(*c)
 	go func() {
-		out <- endpoint{address: origin, origin: true, context: c, client: client}
-		out <- endpoint{address: destination, origin: false, context: c, client: client}
+		out <- endpoint{address: origin, origin: true}
+		out <- endpoint{address: destination, origin: false}
 		close(out)
 	}()
 	return out
@@ -38,7 +43,7 @@ func geocode(in <-chan endpoint) <-chan endpoint {
 			q.Set("key", googleKey)
 			q.Set("address", endpoint.address)
 			u.RawQuery = q.Encode()
-			resp, err := endpoint.client.Get(u.String())
+			resp, err := http.Get(u.String())
 			if err != nil {
 				// TODO error handling
 				return
@@ -62,12 +67,12 @@ func findNearestStation(in <-chan endpoint) <-chan endpoint {
 		for endpoint := range in {
 			// TODO guard endpoint.geocode
 
-			// TODO cache expiration
-			transport := httpcache.NewTransport(memcache.New(*endpoint.context))
-			transport.Transport = endpoint.client.Transport
-			stations, err := getHubwayData(transport)
+			// TODO cache
+			// transport := httpcache.NewTransport(memcache.New(*endpoint.context))
+			// transport.Transport = endpoint.client.Transport
+			stations, err := getHubwayData(&http.Transport{})
 			if err != nil {
-				(*endpoint.context).Errorf("error getting Hubway station data: %v", err)
+				log.Panicf("error getting Hubway station data: %v", err)
 				// TODO cancel
 				return
 			}
@@ -101,7 +106,7 @@ func stationDirections(in <-chan endpoint) <-chan endpoint {
 			q.Set("mode", "walking")
 			// q.Set("departure_time", strconv.FormatInt(time.Now().Unix(), 10))
 			u.RawQuery = q.Encode()
-			resp, err := endpoint.client.Get(u.String())
+			resp, err := http.Get(u.String())
 			if err != nil {
 				// TODO error handling
 				return
@@ -150,12 +155,11 @@ func stationToStation(origin *endpoint, destination *endpoint) (d *Direction, er
 	q.Set("key", googleKey)
 	q.Set("mode", "bicycling")
 	u.RawQuery = q.Encode()
-	resp, err := origin.client.Get(u.String())
+	resp, err := http.Get(u.String())
 	if err != nil {
 		// TODO error handling
 		return nil, err
 	}
-	// d Direction
 	if err := json.NewDecoder(resp.Body).Decode(&d); err != nil {
 		// TODO error handling
 		return nil, err
@@ -164,8 +168,7 @@ func stationToStation(origin *endpoint, destination *endpoint) (d *Direction, er
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	in := gen(&c, r.FormValue("origin"), r.FormValue("destination"))
+	in := gen(r.FormValue("origin"), r.FormValue("destination"))
 	ch1 := stationDirections(findNearestStation(geocode(in)))
 	ch2 := stationDirections(findNearestStation(geocode(in)))
 

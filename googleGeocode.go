@@ -1,6 +1,4 @@
-package app
-
-import "appengine"
+package main
 
 type Geocode struct {
 	Status  string          `json:"status"`
@@ -13,6 +11,6 @@ type GeocodeResult struct {
 }
 
 type GeocodeGeometry struct {
-	Bounds   Bound              `json:"bounds"`
-	Location appengine.GeoPoint `json:"location"`
+	Bounds   Bound    `json:"bounds"`
+	Location GeoPoint `json:"location"`
 }

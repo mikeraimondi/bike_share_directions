@@ -1,10 +1,4 @@
-package app
-
-import (
-	"net/http"
-
-	"appengine"
-)
+package main
 
 type trip struct {
 	origin      endpoint
@@ -17,6 +11,4 @@ type endpoint struct {
 	nearestStation      Station
 	directionsToStation Direction
 	origin              bool
-	context             *appengine.Context
-	client              *http.Client
 }
