@@ -12,7 +12,7 @@ import (
 var googleKey string
 
 func init() {
-	googleKey = os.Getenv("gkey")
+	googleKey = os.Getenv("GKEY")
 }
 
 func main() {
