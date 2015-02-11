@@ -1,0 +1,47 @@
+<link rel="import"
+  href="/bower_components/google-apis/google-maps-api.html">
+
+<polymer-element name="bsd-geocoder"
+  attributes="address location for error loading results">
+  <template>
+    <google-maps-api id="maps"
+      apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+      version="3.exp">
+  </template>
+  <script>
+    Polymer({
+      address: '',
+      location: '',
+      results: [],
+      error: false,
+      loading: false,
+      addressChanged: function(oldAddress, newAddress) {
+        if (!newAddress || oldAddress === newAddress) {
+          return;
+        }
+
+        this.fire('geocode-start');
+        this.loading = true;
+        this.job("bsd-geocoder-" + this.for, function(){
+          var geocoder = new this.$.maps.api.Geocoder();
+          var self = this;
+          geocoder.geocode({'address': this.address, componentRestrictions: {country: 'US'}}, function(results, status) {
+            var detail = {err: false};
+
+            if (status === google.maps.GeocoderStatus.OK) {
+              self.results = results;
+              self.location = results[0].geometry.location;
+              self.error = false;
+              console.log(self.location);
+            } else {
+              detail.err = status;
+              self.error = status;
+            }
+            self.loading = false;
+            self.fire('geocode-done', detail);
+          });
+        }, 750);
+      }
+    });
+  </script>
+</polymer-element>

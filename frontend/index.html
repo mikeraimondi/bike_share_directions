@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bikeshare Directions</title>
+
+    <meta name="viewport"
+    content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="/bower_components/webcomponentsjs/webcomponents.min.js">
+    </script>
+
+    <link rel="import"
+      href="/bower_components/core-header-panel/core-header-panel.html">
+    <link rel="import"
+      href="/bower_components/core-toolbar/core-toolbar.html">
+    <link rel="import"
+      href="/bower_components/font-roboto/roboto.html">
+
+    <link rel="import"
+      href="/elements/bsd-endpoint/bsd-endpoint.html">
+
+    <link rel="stylesheet"
+      href="styles/main.css">
+  </head>
+  <body unresolved fullbleed layout vertical>
+    <core-header-panel flex>
+      <core-toolbar>
+        <div>Bikeshare Directions</div>
+      </core-toolbar>
+      <div fit>
+        <form>
+          <bsd-endpoint label="From"></bsd-endpoint>
+          <bsd-endpoint label="To"></bsd-endpoint>
+        </form>
+      </div>
+    </core-header-panel>
+  </body>
+</html>

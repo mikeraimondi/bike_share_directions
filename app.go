@@ -16,8 +16,11 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", root)
-	err := http.ListenAndServe(":8080", nil)
+	http.Handle("/bower_components/", http.StripPrefix("/bower_components/", http.FileServer(http.Dir("bower_components"))))
+	http.Handle("/", http.FileServer(http.Dir("frontend")))
+
+	http.HandleFunc("/query", root)
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -78,6 +81,7 @@ func findNearestStation(in <-chan endpoint) <-chan endpoint {
 			}
 			// TODO refactor function
 			stations.good()
+			// TODO if geocode fails, results will be an empty array
 			endpoint.nearestStation = *stations.closestStationTo(&endpoint.geocode.Results[0].Geometry.Location)
 			out <- endpoint
 		}

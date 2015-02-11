@@ -1,0 +1,40 @@
+<link rel="import"
+  href="/bower_components/paper-input/paper-input-decorator.html">
+<link rel="import"
+  href="/bower_components/paper-spinner/paper-spinner.html">
+
+<link rel="import"
+  href="/elements/bsd-geocoder/bsd-geocoder.html">
+
+<polymer-element name="bsd-endpoint" attributes="label">
+  <template>
+    <paper-spinner active={{isLoading}}></paper-spinner>
+    <paper-input-decorator label={{label}}
+      isInvalid={{!!geocodeErr}}
+      error={{geocodeErr}}>
+      <input is="core-input" value={{inputVal}} list={{label+"-list"}} required>
+      <datalist id={{label+"-list"}}>
+        <template repeat="{{res in geoResults}}">
+          <option value={{res.formatted_address}}>
+        </template>
+      </datalist>
+    </paper-input-decorator>
+    <bsd-geocoder address={{inputVal}}
+      location={{inputGeocoded}}
+      for={{label}}
+      results={{geoResults}}
+      error={{geocodeErr}}
+      loading={{isLoading}}
+      on-geocode-done={{geoDone}}>
+    </bsd-geocoder>
+  </template>
+  <script>
+    Polymer({
+      geoDone: function(e) {
+        if (!e.detail.err) {
+          // Do additional work with inputGeocoded
+        }
+      }
+    });
+  </script>
+</polymer-element>
