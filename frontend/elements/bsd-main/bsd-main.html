@@ -15,20 +15,23 @@
       <google-map id="map"
         fitToMarkers=true
         apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
-        zoom=12
         latitude={{startLat}}
         longitude={{startLng}}
         signedIn>
-        <google-map-marker latitude="{{$.origin.lat}}"
-          longitude="{{$.origin.lng}}"
-          title="Origin">
-          <p>Origin</p>
-        </google-map-marker>
-        <google-map-marker latitude="{{$.destination.lat}}"
-          longitude="{{$.destination.lng}}"
-          title="Destination">
-          <p>Destination</p>
-        </google-map-marker>
+        <template if={{$.origin.located}}>
+          <google-map-marker latitude="{{$.origin.lat}}"
+            longitude="{{$.origin.lng}}"
+            title="Origin">
+            <p>Origin</p>
+          </google-map-marker>
+        </template>
+        <template if={{$.destination.located}}>
+          <google-map-marker latitude="{{$.destination.lat}}"
+            longitude="{{$.destination.lng}}"
+            title="Destination">
+            <p>Destination</p>
+          </google-map-marker>
+        </template>
         <template repeat="{{station in stations}}">
           <google-map-marker latitude="{{station.Lat}}"
             longitude="{{station.Lng}}"
