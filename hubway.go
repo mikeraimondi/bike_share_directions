@@ -5,12 +5,21 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 )
 
 // A StationList is a collection of Hubway stations
 type StationList struct {
 	Stations []Station `xml:"station"`
+	point    GeoPoint
+}
+
+func (sl StationList) Len() int      { return len(sl.Stations) }
+func (sl StationList) Swap(i, j int) { sl.Stations[i], sl.Stations[j] = sl.Stations[j], sl.Stations[i] }
+func (sl StationList) Less(i, j int) bool {
+	return math.Abs(sl.point.Lat-sl.Stations[i].Lat)+math.Abs(sl.point.Lng-sl.Stations[i].Lng) <
+		math.Abs(sl.point.Lat-sl.Stations[j].Lat)+math.Abs(sl.point.Lng-sl.Stations[j].Lng)
 }
 
 // A Station is a single Hubway station
@@ -42,14 +51,13 @@ func (sl *StationList) good() {
 	sl.Stations = a
 }
 
-func (sl *StationList) closestStationTo(point *GeoPoint) *Station {
-	best := sl.Stations[0]
-	for _, station := range sl.Stations {
-		if math.Abs(point.Lat-station.Lat)+math.Abs(point.Lng-station.Lng) < math.Abs(point.Lat-best.Lat)+math.Abs(point.Lng-best.Lng) {
-			best = station
-		}
+func (sl *StationList) closestStationsTo(point *GeoPoint, count int) []Station {
+	if len(sl.Stations) < count {
+		count = len(sl.Stations)
 	}
-	return &best
+	sl.point = *point
+	sort.Sort(sl)
+	return sl.Stations[0:count]
 }
 
 func (s *Station) stringCoords() string {

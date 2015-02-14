@@ -1,47 +1,55 @@
 <link rel="import"
+  href="/bower_components/paper-input/paper-input-decorator.html">
+<link rel="import"
   href="/bower_components/google-apis/google-maps-api.html">
 
 <polymer-element name="bsd-geocoder"
-  attributes="address location for error loading results">
+  attributes="location located label">
   <template>
     <google-maps-api id="maps"
       apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
       version="3.exp">
+    <paper-input-decorator label={{label}}
+      isInvalid={{located===false}}
+      error="Please enter a recognized address">
+      <input id="geocodeInput" is="core-input" value={{inputVal}} on-focus={{geolocate}} required>
+    </paper-input-decorator>
   </template>
   <script>
     Polymer({
-      address: '',
       location: '',
-      results: [],
-      error: false,
-      loading: false,
-      addressChanged: function(oldAddress, newAddress) {
-        if (!newAddress || oldAddress === newAddress) {
-          return;
-        }
-
-        this.fire('geocode-start');
-        this.loading = true;
-        this.job("bsd-geocoder-" + this.for, function(){
-          var geocoder = new this.$.maps.api.Geocoder();
-          var self = this;
-          geocoder.geocode({'address': this.address, componentRestrictions: {country: 'US'}}, function(results, status) {
-            var detail = {err: false};
-
-            if (status === google.maps.GeocoderStatus.OK) {
-              self.results = results;
-              self.location = results[0].geometry.location;
-              self.error = false;
-              console.log(self.location);
+      ready: function() {
+        var self = this;
+        this.$.maps.addEventListener('api-load', function() {
+          self.autocomplete = new this.api.places.Autocomplete(
+            self.$.geocodeInput,
+            { types: ['geocode'], componentRestrictions: {country: 'us'} });
+          this.api.event.addListener(self.autocomplete, 'place_changed', function() {
+            var place = self.autocomplete.getPlace();
+            if (place.geometry) {
+              self.location = place.geometry.location;
+              self.located = true;
             } else {
-              detail.err = status;
-              self.error = status;
+              self.location = '';
+              self.located = false;
             }
-            self.loading = false;
-            self.fire('geocode-done', detail);
           });
-        }, 750);
-      }
+        });
+      },
+      geolocate: function(e) {
+        if (navigator.geolocation) {
+          var self = this;
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var geolocation = new google.maps.LatLng(
+              position.coords.latitude, position.coords.longitude);
+            var circle = new google.maps.Circle({
+              center: geolocation,
+              radius: position.coords.accuracy
+            });
+            self.autocomplete.setBounds(circle.getBounds());
+          });
+        }
+      },
     });
   </script>
 </polymer-element>

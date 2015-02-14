@@ -1,39 +1,40 @@
 <link rel="import"
-  href="/bower_components/paper-input/paper-input-decorator.html">
-<link rel="import"
   href="/bower_components/paper-spinner/paper-spinner.html">
+<link rel="import"
+  href="/bower_components/core-ajax/core-ajax.html">
 
 <link rel="import"
   href="/elements/bsd-geocoder/bsd-geocoder.html">
 
-<polymer-element name="bsd-endpoint" attributes="label">
+<polymer-element name="bsd-endpoint" attributes="label stations">
   <template>
-    <paper-spinner active={{isLoading}}></paper-spinner>
-    <paper-input-decorator label={{label}}
-      isInvalid={{!!geocodeErr}}
-      error={{geocodeErr}}>
-      <input is="core-input" value={{inputVal}} list={{label+"-list"}} required>
-      <datalist id={{label+"-list"}}>
-        <template repeat="{{res in geoResults}}">
-          <option value={{res.formatted_address}}>
-        </template>
-      </datalist>
-    </paper-input-decorator>
-    <bsd-geocoder address={{inputVal}}
-      location={{inputGeocoded}}
-      for={{label}}
-      results={{geoResults}}
-      error={{geocodeErr}}
-      loading={{isLoading}}
-      on-geocode-done={{geoDone}}>
+    <bsd-geocoder
+      id="geocoder"
+      location="{{endpointLocation}}"
+      label="To">
     </bsd-geocoder>
+    <core-ajax
+      id="submitAJAX"
+      url="/query"
+      params='{"lat":"{{lat}}", "lng":"{{lng}}"}'
+      handleAs="json"
+      response="{{stations}}"
+      on-core-response="{{showMap}}">
+    </core-ajax>
+    <paper-spinner active="{{isLoading}}"></paper-spinner>
   </template>
   <script>
     Polymer({
-      geoDone: function(e) {
-        if (!e.detail.err) {
-          // Do additional work with inputGeocoded
+      endpointLocationChanged: function() {
+        if (this.$.geocoder.located && this.endpointLocation) {
+          this.isLoading = true;
+          this.lat = this.endpointLocation.lat();
+          this.lng = this.endpointLocation.lng();
+          this.$.submitAJAX.go();
         }
+      },
+      showMap: function() {
+        this.isLoading = false;
       }
     });
   </script>

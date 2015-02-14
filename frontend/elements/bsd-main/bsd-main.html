@@ -1,0 +1,36 @@
+<link rel="import"
+  href="/bower_components/google-map/google-map.html">
+
+<link rel="import"
+  href="/elements/bsd-endpoint/bsd-endpoint.html">
+
+<polymer-element name="bsd-main">
+  <template>
+    <bsd-endpoint label="From" stations="{{originStations}}"></bsd-endpoint>
+    <bsd-endpoint label="To" stations="{{destinationStations}}"></bsd-endpoint>
+    <google-map
+      apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+      fitToMarkers=true>
+      <template repeat="{{station in stations}}">
+        <google-map-marker latitude="{{station.Lat}}" longitude="{{station.Lng}}"
+            title="{{station.Name}}"></google-map-marker>
+      </template>
+    </google-map>
+  </template>
+  <script>
+    Polymer({
+      originStations: [],
+      destinationStations: [],
+      originStationsChanged: function() {
+        if (this.originStations && this.destinationStations) {
+          this.stations = this.originStations.concat(this.destinationStations);
+        }
+      },
+      destinationStationsChanged: function() {
+        if (this.originStations && this.destinationStations) {
+          this.stations = this.destinationStations.concat(this.originStations);
+        }
+      }
+    });
+  </script>
+</polymer-element>
