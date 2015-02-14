@@ -2,34 +2,61 @@
   href="/bower_components/google-map/google-map.html">
 
 <link rel="import"
+  href="/elements/bsd-globals/bsd-globals.html">
+<link rel="import"
   href="/elements/bsd-endpoint/bsd-endpoint.html">
 
 <polymer-element name="bsd-main">
   <template>
-    <bsd-endpoint label="From" stations="{{originStations}}"></bsd-endpoint>
-    <bsd-endpoint label="To" stations="{{destinationStations}}"></bsd-endpoint>
-    <google-map
-      apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
-      fitToMarkers=true>
-      <template repeat="{{station in stations}}">
-        <google-map-marker latitude="{{station.Lat}}" longitude="{{station.Lng}}"
-            title="{{station.Name}}"></google-map-marker>
-      </template>
-    </google-map>
+    <bsd-globals id="globals" lat={{startLat}} lng={{startLng}}></bsd-globals>
+    <bsd-endpoint id="origin" label="From" stations="{{originStations}}"></bsd-endpoint>
+    <bsd-endpoint id="destination" label="To" stations="{{destinationStations}}"></bsd-endpoint>
+    <template if={{showMap}}>
+      <google-map id="map"
+        fitToMarkers=true
+        apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+        zoom=12
+        latitude={{startLat}}
+        longitude={{startLng}}
+        signedIn>
+        <google-map-marker latitude="{{$.origin.lat}}"
+          longitude="{{$.origin.lng}}"
+          title="Origin">
+          <p>Origin</p>
+        </google-map-marker>
+        <google-map-marker latitude="{{$.destination.lat}}"
+          longitude="{{$.destination.lng}}"
+          title="Destination">
+          <p>Destination</p>
+        </google-map-marker>
+        <template repeat="{{station in stations}}">
+          <google-map-marker latitude="{{station.Lat}}"
+            longitude="{{station.Lng}}"
+            title="{{station.Name}}">
+            <p>{{station.Name}}</p>
+            <ul>
+              <li>Bikes: {{station.Bikes}}</li>
+              <li>Empty Docks: {{station.EmptyDocks}}</li>
+            </ul>
+          </google-map-marker>
+        </template>
+      </google-map>
+    </template>
   </template>
   <script>
     Polymer({
-      originStations: [],
-      destinationStations: [],
+      stations: [],
       originStationsChanged: function() {
-        if (this.originStations && this.destinationStations) {
-          this.stations = this.originStations.concat(this.destinationStations);
+        if (this.originStations.length > 0) {
+          this.showMap = true;
         }
+        this.stations = this.originStations.concat(this.destinationStations);
       },
       destinationStationsChanged: function() {
-        if (this.originStations && this.destinationStations) {
-          this.stations = this.destinationStations.concat(this.originStations);
+        if (this.destinationStations.length > 0) {
+          this.showMap = true;
         }
+        this.stations = this.originStations.concat(this.destinationStations);
       }
     });
   </script>

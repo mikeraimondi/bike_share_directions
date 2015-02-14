@@ -1,0 +1,51 @@
+<link rel="import"
+  href="/bower_components/google-apis/google-maps-api.html">
+
+<polymer-element name="bsd-globals" attributes="lat lng">
+  <template>
+    <google-maps-api id="maps"
+      apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+      version="3.exp">
+  </template>
+  <script>
+  (function() {
+    var userCircle;
+
+    Polymer({
+      bounds: '',
+      ready: function() {
+        var self = this;
+        self.$.maps.addEventListener('api-load', function() {
+          if (userCircle) {
+            self.userCircle = userCircle;
+            self.lat = self.userCircle.getCenter.lat();
+            self.lng = self.userCircle.getCenter.lng();
+            self.bounds = self.userCircle.getBounds();
+            self.fire('user.located');
+          } else {
+            self.geolocate();
+          }
+        });
+      },
+      geolocate: function() {
+        if (navigator.geolocation) {
+          var self = this;
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var geolocation = new google.maps.LatLng(
+              position.coords.latitude, position.coords.longitude);
+            userCircle = new google.maps.Circle({
+              center: geolocation,
+              radius: position.coords.accuracy
+            });
+            self.userCircle = userCircle;
+            self.lat = self.userCircle.center.lat();
+            self.lng = self.userCircle.center.lng();
+            self.bounds = self.userCircle.getBounds();
+            self.fire('user.located');
+          });
+        }
+      },
+    });
+  })();
+  </script>
+</polymer-element>

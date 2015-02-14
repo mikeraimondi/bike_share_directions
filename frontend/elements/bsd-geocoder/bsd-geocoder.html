@@ -3,16 +3,20 @@
 <link rel="import"
   href="/bower_components/google-apis/google-maps-api.html">
 
+<link rel="import"
+  href="/elements/bsd-globals/bsd-globals.html">
+
 <polymer-element name="bsd-geocoder"
   attributes="location located label">
   <template>
+    <bsd-globals id="globals"></bsd-globals>
     <google-maps-api id="maps"
       apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
       version="3.exp">
     <paper-input-decorator label={{label}}
       isInvalid={{located===false}}
       error="Please enter a recognized address">
-      <input id="geocodeInput" is="core-input" value={{inputVal}} on-focus={{geolocate}} required>
+      <input id="geocodeInput" is="core-input" value={{inputVal}} required>
     </paper-input-decorator>
   </template>
   <script>
@@ -24,6 +28,9 @@
           self.autocomplete = new this.api.places.Autocomplete(
             self.$.geocodeInput,
             { types: ['geocode'], componentRestrictions: {country: 'us'} });
+          self.$.globals.addEventListener('user.located', function(e) {
+            self.autocomplete.setBounds(this.bounds);
+          });
           this.api.event.addListener(self.autocomplete, 'place_changed', function() {
             var place = self.autocomplete.getPlace();
             if (place.geometry) {
@@ -35,20 +42,6 @@
             }
           });
         });
-      },
-      geolocate: function(e) {
-        if (navigator.geolocation) {
-          var self = this;
-          navigator.geolocation.getCurrentPosition(function(position) {
-            var geolocation = new google.maps.LatLng(
-              position.coords.latitude, position.coords.longitude);
-            var circle = new google.maps.Circle({
-              center: geolocation,
-              radius: position.coords.accuracy
-            });
-            self.autocomplete.setBounds(circle.getBounds());
-          });
-        }
       },
     });
   </script>

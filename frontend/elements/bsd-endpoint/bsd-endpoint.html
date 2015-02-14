@@ -11,20 +11,20 @@
     <bsd-geocoder
       id="geocoder"
       location="{{endpointLocation}}"
-      label="To">
+      label="{{label}}">
     </bsd-geocoder>
     <core-ajax
       id="submitAJAX"
       url="/query"
       params='{"lat":"{{lat}}", "lng":"{{lng}}"}'
       handleAs="json"
-      response="{{stations}}"
-      on-core-response="{{showMap}}">
+      on-core-response="{{onResponse}}">
     </core-ajax>
     <paper-spinner active="{{isLoading}}"></paper-spinner>
   </template>
   <script>
     Polymer({
+      stations: [],
       endpointLocationChanged: function() {
         if (this.$.geocoder.located && this.endpointLocation) {
           this.isLoading = true;
@@ -33,7 +33,8 @@
           this.$.submitAJAX.go();
         }
       },
-      showMap: function() {
+      onResponse: function() {
+        this.stations = this.$.submitAJAX.response
         this.isLoading = false;
       }
     });
