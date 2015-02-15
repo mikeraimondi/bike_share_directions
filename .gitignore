@@ -2,4 +2,5 @@ bower_components/
 node_modules/
 .envrc
 gin-bin
+bike_share_directions
 web.json
