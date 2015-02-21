@@ -4,3 +4,4 @@ node_modules/
 gin-bin
 bike_share_directions
 web.json
+*.pem

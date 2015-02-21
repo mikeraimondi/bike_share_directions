@@ -15,13 +15,6 @@ type StationList struct {
 	point    GeoPoint
 }
 
-func (sl StationList) Len() int      { return len(sl.Stations) }
-func (sl StationList) Swap(i, j int) { sl.Stations[i], sl.Stations[j] = sl.Stations[j], sl.Stations[i] }
-func (sl StationList) Less(i, j int) bool {
-	return math.Abs(sl.point.Lat-sl.Stations[i].Lat)+math.Abs(sl.point.Lng-sl.Stations[i].Lng) <
-		math.Abs(sl.point.Lat-sl.Stations[j].Lat)+math.Abs(sl.point.Lng-sl.Stations[j].Lng)
-}
-
 // A Station is a single Hubway station
 type Station struct {
 	ID                 uint64  `xml:"id"`
@@ -39,6 +32,13 @@ type Station struct {
 	Bikes              uint16  `xml:"nbBikes"`
 	EmptyDocks         uint16  `xml:"nbEmptyDocks"`
 	LatestUpdateTime   uint64  `xml:"latestUpdateTime"`
+}
+
+func (sl StationList) Len() int      { return len(sl.Stations) }
+func (sl StationList) Swap(i, j int) { sl.Stations[i], sl.Stations[j] = sl.Stations[j], sl.Stations[i] }
+func (sl StationList) Less(i, j int) bool {
+	return math.Abs(sl.point.Lat-sl.Stations[i].Lat)+math.Abs(sl.point.Lng-sl.Stations[i].Lng) <
+		math.Abs(sl.point.Lat-sl.Stations[j].Lat)+math.Abs(sl.point.Lng-sl.Stations[j].Lng)
 }
 
 func (sl *StationList) good() {

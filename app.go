@@ -9,18 +9,12 @@ import (
 	"strconv"
 )
 
-var googleKey string
 var securePort string
 var insecurePort string
 
 func init() {
-	googleKey = os.Getenv("GKEY")
-	portBase, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
-		log.Fatal("Invalid port number", err)
-	}
-	securePort = strconv.Itoa(portBase + 443)
-	insecurePort = strconv.Itoa(portBase + 80)
+	insecurePort = os.Getenv("PORT")
+	securePort = os.Getenv("SSLPORT")
 }
 
 func main() {
@@ -42,10 +36,12 @@ func root(w http.ResponseWriter, r *http.Request) {
 	lng, err := strconv.ParseFloat(r.FormValue("lng"), 64)
 	if err != nil {
 		http.Error(w, "Longitude could not be parsed", http.StatusBadRequest)
+		return
 	}
 	lat, err := strconv.ParseFloat(r.FormValue("lat"), 64)
 	if err != nil {
 		http.Error(w, "Latitude could not be parsed", http.StatusBadRequest)
+		return
 	}
 	point := GeoPoint{Lat: lat, Lng: lng}
 	// TODO cache
@@ -56,7 +52,7 @@ func root(w http.ResponseWriter, r *http.Request) {
 	}
 	// TODO refactor function
 	stations.good()
-	nearestStations := stations.closestStationsTo(&point, 10)
+	nearestStations := stations.closestStationsTo(&point, 5)
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(nearestStations)
@@ -65,5 +61,5 @@ func root(w http.ResponseWriter, r *http.Request) {
 
 func secureRedirect(w http.ResponseWriter, r *http.Request) {
 	host, _, _ := net.SplitHostPort(r.Host)
-	http.Redirect(w, r, "https://"+host+":"+securePort+r.RequestURI, http.StatusMovedPermanently)
+	http.Redirect(w, r, "https://"+host+":443"+r.RequestURI, http.StatusMovedPermanently)
 }

@@ -7,5 +7,7 @@ RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN npm install --unsafe-perm
 RUN node_modules/.bin/bower install --allow-root --config.interactive=false
 
-ENV PORT=8080
-EXPOSE 8080
+ENV SSLPORT=6443
+EXPOSE 6443
+ENV PORT=6080
+EXPOSE 6080

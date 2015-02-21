@@ -5,12 +5,19 @@
   href="/elements/bsd-globals/bsd-globals.html">
 <link rel="import"
   href="/elements/bsd-endpoint/bsd-endpoint.html">
+<link rel="import"
+  href="/elements/bsd-distance-estimator/bsd-distance-estimator.html">
 
 <polymer-element name="bsd-main">
   <template>
     <bsd-globals id="globals" lat={{startLat}} lng={{startLng}}></bsd-globals>
     <bsd-endpoint id="origin" label="From" stations="{{originStations}}"></bsd-endpoint>
     <bsd-endpoint id="destination" label="To" stations="{{destinationStations}}"></bsd-endpoint>
+    <bsd-distance-estimator origins={{$.origin.stationCoords}}
+      destinations={{$.destination.stationCoords}}
+      mode="bicycling"
+      on-distance-response={{onDistance}}>
+    </bsd-distance-estimator>
     <template if={{showMap}}>
       <google-map id="map"
         fitToMarkers=true
@@ -60,6 +67,9 @@
           this.showMap = true;
         }
         this.stations = this.originStations.concat(this.destinationStations);
+      },
+      onDistance: function(e) {
+        console.log(e.detail.response)
       }
     });
   </script>

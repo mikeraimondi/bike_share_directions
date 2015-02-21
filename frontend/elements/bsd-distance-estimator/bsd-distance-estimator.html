@@ -1,0 +1,51 @@
+<link rel="import"
+  href="/bower_components/google-apis/google-maps-api.html">
+
+<polymer-element name="bsd-distance-estimator" attributes="origins destinations mode">
+  <template>
+    <google-maps-api id="maps"
+      apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+      version="3.exp">
+  </template>
+  <script>
+    Polymer({
+      origins: [],
+      destinations: [],
+      originsChanged: function() {
+        this.getDistances();
+      },
+      destinationsChanged: function() {
+        this.getDistances();
+      },
+      getDistances: function() {
+        if (this.origins.length > 0 && this.destinations.length > 0) {
+          var api = this.$.maps.api
+
+          var origins = this.origins.map(function(origin) {
+            return new api.LatLng(origin[0], origin[1]);
+          });
+          var destinations = this.destinations.map(function(destination) {
+            return new api.LatLng(destination[0], destination[1]);
+          });
+
+          var service = new api.DistanceMatrixService();
+          var self = this;
+          service.getDistanceMatrix(
+            {
+              origins: origins,
+              destinations: destinations,
+              travelMode: api.TravelMode[this.mode.toUpperCase()],
+              unitSystem: api.UnitSystem.IMPERIAL
+            }, function(response, status) {
+              if (status === "OK") {
+                self.fire('distance-response', {response: response});
+              } else {
+                self.fire('distance-error');
+              }
+            }
+          );
+        }
+      }
+    });
+  </script>
+</polymer-element>

@@ -5,27 +5,36 @@
 
 <link rel="import"
   href="/elements/bsd-geocoder/bsd-geocoder.html">
+<link rel="import"
+  href="/elements/bsd-distance-estimator/bsd-distance-estimator.html">
 
 <polymer-element name="bsd-endpoint" attributes="label stations">
   <template>
-    <bsd-geocoder
-      id="geocoder"
+    <template if={{noResults}}>
+      <div>No available bikes were found near this address</div>
+    </template>
+    <bsd-geocoder id="geocoder"
       location="{{endpointLocation}}"
       label="{{label}}"
       located={{located}}>
     </bsd-geocoder>
-    <core-ajax
-      id="submitAJAX"
+    <core-ajax id="submitAJAX"
       url="/query"
       params='{"lat":"{{lat}}", "lng":"{{lng}}"}'
       handleAs="json"
       on-core-response="{{onResponse}}">
     </core-ajax>
+    <bsd-distance-estimator origins={{[[lat,lng]]}}
+      destinations={{stationCoords}}
+      mode="walking"
+      on-distance-response={{onDistance}}>
+    </bsd-distance-estimator>
     <paper-spinner active="{{isLoading}}"></paper-spinner>
   </template>
   <script>
     Polymer({
       stations: [],
+      noResults: false,
       endpointLocationChanged: function() {
         if (this.$.geocoder.located && this.endpointLocation) {
           this.isLoading = true;
@@ -34,9 +43,20 @@
           this.$.submitAJAX.go();
         }
       },
-      onResponse: function() {
-        this.stations = this.$.submitAJAX.response
+      onResponse: function(e) {
+        this.stations = e.detail.response
+        if (this.stations.length === 0) {
+          this.noResults = true;
+          this.isLoading = false;
+        } else {
+          this.stationCoords = this.stations.map(function(station) {
+            return [station.Lat, station.Lng];
+          });
+        }
+      },
+      onDistance: function(e) {
         this.isLoading = false;
+        console.log(e.detail.response);
       }
     });
   </script>
