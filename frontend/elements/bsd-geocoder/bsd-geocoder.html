@@ -12,7 +12,7 @@
     <bsd-globals id="globals"></bsd-globals>
     <google-maps-api id="maps"
       apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
-      version="3.exp">
+      version="3.exp"></google-maps-api>
     <paper-input-decorator label={{label}}
       isInvalid={{located===false}}
       error="Please enter a recognized address">
@@ -21,7 +21,6 @@
   </template>
   <script>
     Polymer({
-      location: '',
       ready: function() {
         var self = this;
         this.$.maps.addEventListener('api-load', function() {
@@ -34,10 +33,15 @@
           this.api.event.addListener(self.autocomplete, 'place_changed', function() {
             var place = self.autocomplete.getPlace();
             if (place.geometry) {
-              self.location = place.geometry.location;
+              self.location =
+                {
+                  lat: place.geometry.location.lat(),
+                  lng: place.geometry.location.lng(),
+                  name: place.name
+                };
               self.located = true;
             } else {
-              self.location = '';
+              self.location = null;
               self.located = false;
             }
           });

@@ -1,5 +1,9 @@
 <link rel="import"
   href="/bower_components/google-map/google-map.html">
+<link rel="import"
+  href="/bower_components/google-map/google-map-directions.html">
+<link rel="import"
+  href="/bower_components/google-apis/google-maps-api.html">
 
 <link rel="import"
   href="/elements/bsd-globals/bsd-globals.html">
@@ -11,64 +15,118 @@
 <polymer-element name="bsd-main">
   <template>
     <bsd-globals id="globals" lat={{startLat}} lng={{startLng}}></bsd-globals>
-    <bsd-endpoint id="origin" label="From" stations="{{originStations}}"></bsd-endpoint>
-    <bsd-endpoint id="destination" label="To" stations="{{destinationStations}}"></bsd-endpoint>
-    <bsd-distance-estimator origins={{$.origin.stationCoords}}
-      destinations={{$.destination.stationCoords}}
+    <bsd-endpoint id="origin" label="From" stations="{{originStations}}" on-endpoint-distances={{originDistances}}></bsd-endpoint>
+    <bsd-endpoint id="destination" label="To" stations="{{destinationStations}}" on-endpoint-distances={{destinationDistances}}></bsd-endpoint>
+    <bsd-distance-estimator origins={{originStations}}
+      destinations={{destinationStations}}
       mode="bicycling"
       on-distance-response={{onDistance}}>
     </bsd-distance-estimator>
+    <google-maps-api id="api"
+      apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+      version="3.exp"></google-maps-api>
     <template if={{showMap}}>
       <google-map id="map"
+        map={{map}}
         fitToMarkers=true
         apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
         latitude={{startLat}}
         longitude={{startLng}}
-        signedIn>
+        zoomable=false>
         <template if={{$.origin.located}}>
-          <google-map-marker latitude="{{$.origin.lat}}"
-            longitude="{{$.origin.lng}}"
+          <google-map-marker latitude="{{$.origin.endpointLocation.lat}}"
+            longitude="{{$.origin.endpointLocation.lng}}"
             title="Origin">
             <p>Origin</p>
           </google-map-marker>
         </template>
         <template if={{$.destination.located}}>
-          <google-map-marker latitude="{{$.destination.lat}}"
-            longitude="{{$.destination.lng}}"
+          <google-map-marker latitude="{{$.destination.endpointLocation.lat}}"
+            longitude="{{$.destination.endpointLocation.lng}}"
             title="Destination">
             <p>Destination</p>
           </google-map-marker>
         </template>
-        <template repeat="{{station in stations}}">
-          <google-map-marker latitude="{{station.Lat}}"
-            longitude="{{station.Lng}}"
-            title="{{station.Name}}">
-            <p>{{station.Name}}</p>
+        <template repeat="{{station in originStations}}">
+          <google-map-marker latitude="{{station.lat}}"
+            longitude="{{station.lng}}"
+            title="{{station.name}}"
+            clickEvents=true
+            on-google-map-marker-click={{onOriginMarkerClick}}>
+            <p>{{station.name}}</p>
             <ul>
-              <li>Bikes: {{station.Bikes}}</li>
-              <li>Empty Docks: {{station.EmptyDocks}}</li>
+              <li>Bikes: {{station.bikes}}</li>
+              <li>Empty Docks: {{station.docks}}</li>
+            </ul>
+          </google-map-marker>
+        </template>
+        <template repeat="{{station in destinationStations}}">
+          <google-map-marker latitude="{{station.lat}}"
+            longitude="{{station.lng}}"
+            title="{{station.name}}"
+            clickEvents=true
+            on-google-map-marker-click={{onDestinationMarkerClick}}>
+            <p>{{station.name}}</p>
+            <ul>
+              <li>Bikes: {{station.bikes}}</li>
+              <li>Empty Docks: {{station.docks}}</li>
             </ul>
           </google-map-marker>
         </template>
       </google-map>
+      <google-map-directions map="{{map}}"
+        apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+        startAddress="{{originLatLng}}"
+        endAddress="{{activeOriginStationLatLng}}"
+        travelMode="WALKING"
+        rendererOptions="{{directionsOptions}}"></google-map-directions>
+      <google-map-directions map="{{map}}"
+        apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+        startAddress="{{activeDestinationStationLatLng}}"
+        endAddress="{{destinationLatLng}}"
+        travelMode="WALKING"
+        rendererOptions="{{directionsOptions}}"></google-map-directions>
+      <google-map-directions map="{{map}}"
+        apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+        startAddress="{{activeOriginStationLatLng}}"
+        endAddress="{{activeDestinationStationLatLng}}"
+        travelMode="BICYCLING"
+        rendererOptions="{{directionsOptions}}"></google-map-directions>
     </template>
   </template>
   <script>
     Polymer({
-      stations: [],
+      ready: function() {
+        this.directionsOptions =
+          {
+            suppressMarkers: true,
+            preserveViewport: true
+          };
+      },
       originStationsChanged: function() {
         if (this.originStations.length > 0) {
           this.showMap = true;
         }
-        this.stations = this.originStations.concat(this.destinationStations);
       },
       destinationStationsChanged: function() {
         if (this.destinationStations.length > 0) {
           this.showMap = true;
         }
-        this.stations = this.originStations.concat(this.destinationStations);
+      },
+      onOriginMarkerClick: function(e) {
+        this.activeOriginStationLatLng = new this.$.api.api.LatLng(e.target.latitude, e.target.longitude);
+      },
+      onDestinationMarkerClick: function(e) {
+        this.activeDestinationStationLatLng = new this.$.api.api.LatLng(e.target.latitude, e.target.longitude);
+      },
+      originDistances: function(e) {
+        this.originLatLng = new this.$.api.api.LatLng(this.$.origin.endpointLocation.lat, this.$.origin.endpointLocation.lng);
+      },
+      destinationDistances: function(e) {
+        this.destinationLatLng = new this.$.api.api.LatLng(this.$.destination.endpointLocation.lat, this.$.destination.endpointLocation.lng);
       },
       onDistance: function(e) {
+        // TODO find optimum
         console.log(e.detail.response)
       }
     });

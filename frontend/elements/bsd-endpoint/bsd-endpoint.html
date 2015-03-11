@@ -20,12 +20,12 @@
     </bsd-geocoder>
     <core-ajax id="submitAJAX"
       url="/query"
-      params='{"lat":"{{lat}}", "lng":"{{lng}}"}'
+      params='{"lat":"{{endpointLocation.lat}}", "lng":"{{endpointLocation.lng}}"}'
       handleAs="json"
       on-core-response="{{onResponse}}">
     </core-ajax>
-    <bsd-distance-estimator origins={{[[lat,lng]]}}
-      destinations={{stationCoords}}
+    <bsd-distance-estimator origins={{[endpointLocation]}}
+      destinations={{stations}}
       mode="walking"
       on-distance-response={{onDistance}}>
     </bsd-distance-estimator>
@@ -38,24 +38,28 @@
       endpointLocationChanged: function() {
         if (this.$.geocoder.located && this.endpointLocation) {
           this.isLoading = true;
-          this.lat = this.endpointLocation.lat();
-          this.lng = this.endpointLocation.lng();
           this.$.submitAJAX.go();
         }
       },
       onResponse: function(e) {
-        this.stations = e.detail.response
-        if (this.stations.length === 0) {
+        if (e.detail.response.length === 0) {
           this.noResults = true;
           this.isLoading = false;
         } else {
-          this.stationCoords = this.stations.map(function(station) {
-            return [station.Lat, station.Lng];
+          this.stations = e.detail.response.map(function(station) {
+            return {
+                      lat: station.Lat,
+                      lng: station.Lng,
+                      name: station.Name,
+                      bikes: station.Bikes,
+                      docks: station.EmptyDocks
+                   };
           });
         }
       },
       onDistance: function(e) {
         this.isLoading = false;
+        this.fire('endpoint-distances', {distances: e.detail.response});
         console.log(e.detail.response);
       }
     });

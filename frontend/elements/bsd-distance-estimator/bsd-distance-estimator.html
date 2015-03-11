@@ -22,10 +22,10 @@
           var api = this.$.maps.api
 
           var origins = this.origins.map(function(origin) {
-            return new api.LatLng(origin[0], origin[1]);
+            return new api.LatLng(origin.lat, origin.lng);
           });
           var destinations = this.destinations.map(function(destination) {
-            return new api.LatLng(destination[0], destination[1]);
+            return new api.LatLng(destination.lat, destination.lng);
           });
 
           var service = new api.DistanceMatrixService();
@@ -38,7 +38,18 @@
               unitSystem: api.UnitSystem.IMPERIAL
             }, function(response, status) {
               if (status === "OK") {
-                self.fire('distance-response', {response: response});
+                var estimates = [];
+                response.rows.forEach(function(row, i) {
+                  row.elements.forEach(function(estimate, j) {
+                    estimates.push({
+                      origin: self.origins[i],
+                      destination: self.destinations[j],
+                      distance: estimate.distance,
+                      duration: estimate.duration
+                    });
+                  });
+                });
+                self.fire('distance-response', {response: estimates});
               } else {
                 self.fire('distance-error');
               }
