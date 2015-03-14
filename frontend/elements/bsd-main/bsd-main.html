@@ -70,20 +70,27 @@
         startAddress="{{toLatLng($.origin.endpointLocation)}}"
         endAddress="{{activeOriginStationLatLng}}"
         travelMode="WALKING"
-        rendererOptions="{{directionsOptions}}"></google-map-directions>
-      <google-map-directions map="{{map}}"
-        apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
-        startAddress="{{activeDestinationStationLatLng}}"
-        endAddress="{{toLatLng($.destination.endpointLocation)}}"
-        travelMode="WALKING"
-        rendererOptions="{{directionsOptions}}"></google-map-directions>
+        on-google-map-response="{{onMapResponse}}"
+        rendererOptions="{{directionsOptions}}"
+        panel="{{$.firstpanel}}"></google-map-directions>
       <google-map-directions map="{{map}}"
         apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
         startAddress="{{activeOriginStationLatLng}}"
         endAddress="{{activeDestinationStationLatLng}}"
         travelMode="BICYCLING"
-        rendererOptions="{{directionsOptions}}"></google-map-directions>
+        rendererOptions="{{directionsOptions}}"
+        panel="{{$.secondpanel}}"></google-map-directions>
+      <google-map-directions map="{{map}}"
+        apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
+        startAddress="{{activeDestinationStationLatLng}}"
+        endAddress="{{toLatLng($.destination.endpointLocation)}}"
+        travelMode="WALKING"
+        rendererOptions="{{directionsOptions}}"
+        panel="{{$.thirdpanel}}"></google-map-directions>
     </template>
+    <div id="firstpanel"></div>
+    <div id="secondpanel"></div>
+    <div id="thirdpanel"></div>
   </template>
   <script>
     Polymer({
