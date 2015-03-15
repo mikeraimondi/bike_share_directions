@@ -14,32 +14,32 @@
 
 <polymer-element name="bsd-main">
   <template>
-    <bsd-globals id="globals" lat={{startLat}} lng={{startLng}}></bsd-globals>
+    <bsd-globals id="globals" lat="{{startLat}}" lng="{{startLng}}"></bsd-globals>
     <bsd-endpoint id="origin" label="From" stations="{{originStations}}"></bsd-endpoint>
     <bsd-endpoint id="destination" label="To" stations="{{destinationStations}}"></bsd-endpoint>
-    <bsd-distance-estimator origins={{originStations}}
-      destinations={{destinationStations}}
+    <bsd-distance-estimator origins="{{originStations}}"
+      destinations="{{destinationStations}}"
       mode="bicycling"
-      on-distance-response={{onDistance}}>
+      on-distance-response="{{onDistance}}">
     </bsd-distance-estimator>
     <google-maps-api id="api"
       apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
       version="3.exp"></google-maps-api>
-    <template if={{showMap}}>
-      <google-map map={{map}}
+    <template if="{{showMap}}">
+      <google-map map="{{map}}"
         fitToMarkers=true
         apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
-        latitude={{startLat}}
-        longitude={{startLng}}
+        latitude="{{startLat}}"
+        longitude="{{startLng}}"
         zoomable=false>
-        <template if={{$.origin.located}}>
+        <template if="{{$.origin.located}}">
           <google-map-marker latitude="{{$.origin.endpointLocation.lat}}"
             longitude="{{$.origin.endpointLocation.lng}}"
             title="{{$.origin.endpointLocation.name}}"
             icon="images/markers/origin.png">
           </google-map-marker>
         </template>
-        <template if={{$.destination.located}}>
+        <template if="{{$.destination.located}}">
           <google-map-marker latitude="{{$.destination.endpointLocation.lat}}"
             longitude="{{$.destination.endpointLocation.lng}}"
             title="{{$.destination.endpointLocation.name}}"
@@ -52,7 +52,7 @@
             title="{{station.name}}"
             icon="images/markers/numbers-closed/number_{{station.bikes}}.png"
             clickEvents=true
-            on-google-map-marker-click={{onOriginMarkerClick}}>
+            on-google-map-marker-click="{{onOriginMarkerClick}}">
           </google-map-marker>
         </template>
         <template repeat="{{station in destinationStations}}">
@@ -61,7 +61,7 @@
             title="{{station.name}}"
             icon="images/markers/numbers-open/number_{{station.docks}}.png"
             clickEvents=true
-            on-google-map-marker-click={{onDestinationMarkerClick}}>
+            on-google-map-marker-click="{{onDestinationMarkerClick}}">
           </google-map-marker>
         </template>
       </google-map>

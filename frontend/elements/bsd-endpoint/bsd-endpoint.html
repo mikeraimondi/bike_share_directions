@@ -10,13 +10,13 @@
 
 <polymer-element name="bsd-endpoint" attributes="label stations">
   <template>
-    <template if={{noResults}}>
+    <template if="{{noResults}}">
       <div>No available bikes were found near this address</div>
     </template>
     <bsd-geocoder id="geocoder"
       location="{{endpointLocation}}"
       label="{{label}}"
-      located={{located}}>
+      located="{{located}}">
     </bsd-geocoder>
     <core-ajax id="submitAJAX"
       url="/query"
@@ -24,10 +24,10 @@
       handleAs="json"
       on-core-response="{{onResponse}}">
     </core-ajax>
-    <bsd-distance-estimator origins={{[endpointLocation]}}
-      destinations={{stations}}
+    <bsd-distance-estimator origins="{{[endpointLocation]}}"
+      destinations="{{stations}}"
       mode="walking"
-      on-distance-response={{onDistance}}>
+      on-distance-response="{{onDistance}}">
     </bsd-distance-estimator>
     <paper-spinner active="{{isLoading}}"></paper-spinner>
   </template>
