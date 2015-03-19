@@ -71,21 +71,21 @@
         endAddress="{{activeOriginStationLatLng}}"
         travelMode="WALKING"
         on-google-map-response="{{onMapResponse}}"
-        rendererOptions="{{directionsOptions}}"
+        rendererOptions="{{walkingDirectionsOpts}}"
         panel="{{$.firstpanel}}"></google-map-directions>
       <google-map-directions map="{{map}}"
         apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
         startAddress="{{activeOriginStationLatLng}}"
         endAddress="{{activeDestinationStationLatLng}}"
         travelMode="BICYCLING"
-        rendererOptions="{{directionsOptions}}"
+        rendererOptions="{{bikingDirectionsOpts}}"
         panel="{{$.secondpanel}}"></google-map-directions>
       <google-map-directions map="{{map}}"
         apiKey="AIzaSyAaulJg7NxcxI-zZMoPOqTce91cyXy3bfw"
         startAddress="{{activeDestinationStationLatLng}}"
         endAddress="{{toLatLng($.destination.endpointLocation)}}"
         travelMode="WALKING"
-        rendererOptions="{{directionsOptions}}"
+        rendererOptions="{{walkingDirectionsOpts}}"
         panel="{{$.thirdpanel}}"></google-map-directions>
     </template>
     <div id="firstpanel"></div>
@@ -95,10 +95,15 @@
   <script>
     Polymer({
       ready: function() {
-        this.directionsOptions =
+        this.walkingDirectionsOpts =
           {
             suppressMarkers: true,
             preserveViewport: true
+          };
+        this.bikingDirectionsOpts = Object.create(this.walkingDirectionsOpts)
+        this.bikingDirectionsOpts.polylineOptions =
+          {
+            strokeColor: "red"
           };
       },
       originStationsChanged: function() {
