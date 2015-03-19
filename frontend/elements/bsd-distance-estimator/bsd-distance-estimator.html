@@ -41,6 +41,8 @@
                 var estimates = [];
                 response.rows.forEach(function(row, i) {
                   row.elements.forEach(function(estimate, j) {
+                    self.origins[i].originScore = estimate.duration.value;
+                    self.destinations[j].destinationScore = estimate.duration.value;
                     estimates.push({
                       origin: self.origins[i],
                       destination: self.destinations[j],
