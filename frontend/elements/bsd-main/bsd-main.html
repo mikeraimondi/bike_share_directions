@@ -150,10 +150,6 @@
       },
       onDestinationMarkerClick: function(e) {
         this.activeDestinationStationLatLng = new this.$.api.api.LatLng(e.target.latitude, e.target.longitude);
-      },
-      onDistance: function(e) {
-        // TODO find optimum
-        console.log(e.detail.response)
       }
     });
   </script>
