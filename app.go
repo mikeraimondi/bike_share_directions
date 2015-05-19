@@ -22,12 +22,15 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("frontend")))
 
 	http.HandleFunc("/query", root)
-	go func() {
-		if err := http.ListenAndServeTLS(":"+securePort, "cert.pem", "key.pem", nil); err != nil {
-			log.Fatal("ListenAndServeTLS: ", err)
-		}
-	}()
-	if err := http.ListenAndServe(":"+insecurePort, http.HandlerFunc(secureRedirect)); err != nil {
+	// go func() {
+	// 	if err := http.ListenAndServeTLS(":"+securePort, "cert.pem", "key.pem", nil); err != nil {
+	// 		log.Fatal("ListenAndServeTLS: ", err)
+	// 	}
+	// }()
+	// if err := http.ListenAndServe(":"+insecurePort, http.HandlerFunc(secureRedirect)); err != nil {
+	// 	log.Fatal("ListenAndServe: ", err)
+	// }
+	if err := http.ListenAndServe(":"+insecurePort, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
