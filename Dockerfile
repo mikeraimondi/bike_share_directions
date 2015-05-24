@@ -1,19 +1,23 @@
 FROM golang:1.4
 
-RUN apt-get update
-RUN apt-get -y install npm
-RUN ln -s /usr/bin/nodejs /usr/bin/node
-
 # Install Node deps
-ADD package.json /tmp/package.json
-RUN cd /tmp && npm install --unsafe-perm
+RUN curl -sL https://deb.nodesource.com/setup | bash - \
+  && apt-get install -y nodejs \
+  && npm install npm -g \
+  && adduser --disabled-password --gecos '' node
+USER node
+COPY package.json /tmp/package.json
+RUN cd /tmp && npm install
 
 # Install Bower deps
-ADD bower.json /tmp/bower.json
-RUN cd /tmp && node_modules/.bin/bower install --allow-root --config.interactive=false
+COPY bower.json /tmp/bower.json
+RUN cd /tmp && node_modules/.bin/bower install --config.interactive=false
 
 # Copy deps
-RUN mkdir -p go/src/app && cp -a /tmp/node_modules go/src/app/ && cp -a /tmp/bower_components go/src/app/
+USER root
+RUN mkdir -p go/src/app \
+  && cp -a /tmp/node_modules go/src/app/ \
+  && cp -a /tmp/bower_components go/src/app/
 
 WORKDIR /go/src/app
 
