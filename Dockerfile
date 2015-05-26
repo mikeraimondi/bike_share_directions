@@ -24,7 +24,7 @@ WORKDIR $project
 COPY . $project
 RUN go install
 
+ENTRYPOINT ["/go/bin/bike_share_directions"]
+
 EXPOSE 80
 EXPOSE 443
-
-ENTRYPOINT ["/go/bin/bike_share_directions"]
