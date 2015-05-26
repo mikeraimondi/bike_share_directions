@@ -1,0 +1,12 @@
+[Unit]
+Description=Vulcan Proxy Presence
+BindsTo=vulcan.service
+After=vulcan.service
+After=etcd.service
+
+[Service]
+EnvironmentFile=/etc/environment
+ExecStart=/bin/sh -c "while true; do curl -s https://www.cloudflare.com/api_json.html -d a=rec_edit -d tkn=$(/usr/bin/etcdctl get /cloudflare/token) -d id=$(/usr/bin/etcdctl get /cloudflare/id) -d email=$(/usr/bin/etcdctl get /cloudflare/email) -d z=bikeshare-directions.com -d type=A -d name=@ -d content=${COREOS_PUBLIC_IPV4} -d service_mode=0 -d ttl=120;sleep 90;done"
+
+[X-Fleet]
+MachineOf=vulcan.service

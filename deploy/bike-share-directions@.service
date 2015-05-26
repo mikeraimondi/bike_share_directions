@@ -1,0 +1,14 @@
+[Unit]
+Description=BSD App Server
+After=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill bike-share-directions
+ExecStartPre=-/usr/bin/docker rm bike-share-directions
+ExecStartPre=/usr/bin/docker pull mikeraimondi/bike-share-directions
+ExecStart=/usr/bin/docker run --name bike-share-directions -p 6080:80 mikeraimondi/bike-share-directions
+ExecStop=/usr/bin/docker stop bike-share-directions
+
+[X-Fleet]
+Conflicts=bike-share-directions@*.service
