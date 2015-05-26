@@ -15,18 +15,16 @@ RUN cd /tmp && node_modules/.bin/bower install --config.interactive=false
 
 # Copy deps
 USER root
-RUN mkdir -p go/src/app \
-  && cp -a /tmp/node_modules go/src/app/ \
-  && cp -a /tmp/bower_components go/src/app/
+ENV project /go/src/github.com/mikeraimondi/bike_share_directions
+RUN mkdir -p $project \
+  && cp -a /tmp/node_modules $project \
+  && cp -a /tmp/bower_components $project
 
-WORKDIR /go/src/app
+WORKDIR $project
+COPY . $project
+RUN go install
 
-COPY . /go/src/app
-RUN go-wrapper download
-RUN go-wrapper install
-CMD ["go-wrapper", "run"]
+EXPOSE 80
+EXPOSE 443
 
-ENV SSLPORT=6443
-EXPOSE 6443
-ENV PORT=6080
-EXPOSE 6080
+ENTRYPOINT ["/go/bin/bike_share_directions"]

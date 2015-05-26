@@ -5,17 +5,8 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 )
-
-var securePort string
-var insecurePort string
-
-func init() {
-	insecurePort = os.Getenv("PORT")
-	securePort = os.Getenv("SSLPORT")
-}
 
 func main() {
 	http.Handle("/bower_components/", http.StripPrefix("/bower_components/", http.FileServer(http.Dir("bower_components"))))
@@ -30,7 +21,7 @@ func main() {
 	// if err := http.ListenAndServe(":"+insecurePort, http.HandlerFunc(secureRedirect)); err != nil {
 	// 	log.Fatal("ListenAndServe: ", err)
 	// }
-	if err := http.ListenAndServe(":"+insecurePort, nil); err != nil {
+	if err := http.ListenAndServe(":80", nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }

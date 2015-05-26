@@ -21,6 +21,6 @@
     "google-map": "mikeraimondi/google-map#directions_improvements"
   },
   "resolutions": {
-    "webcomponentsjs": "^0.6.0"
+    "webcomponentsjs": "^0.5"
   }
 }
