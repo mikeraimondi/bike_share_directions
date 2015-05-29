@@ -5,3 +5,4 @@ gin-bin
 bike_share_directions
 web.json
 *.pem
+deploy/cloud-config.yaml
