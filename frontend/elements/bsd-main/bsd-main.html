@@ -12,99 +12,118 @@
 <link rel="import"
   href="/elements/bsd-distance-estimator/bsd-distance-estimator.html">
 
-<polymer-element name="bsd-main">
+<dom-module id="bsd-main">
   <template>
+      <style>
+        google-map {
+          height: 600px;
+        }
+      </style>
     <bsd-globals id="globals" lat="{{startLat}}" lng="{{startLng}}"></bsd-globals>
-    <bsd-endpoint id="origin" label="From" stations="{{originStations}}"></bsd-endpoint>
-    <bsd-endpoint id="destination" label="To" stations="{{destinationStations}}"></bsd-endpoint>
-    <bsd-distance-estimator origins="{{originStations}}"
-      destinations="{{destinationStations}}"
-      mode="bicycling"
-      on-distance-response="{{onDistance}}">
+    <bsd-endpoint id="origin" stations="{{originStations}}" located="{{originLocated}}" location="{{originLocation}}">
+      <label>From</label>
+    </bsd-endpoint>
+    <bsd-endpoint id="destination" stations="{{destinationStations}}" located="{{destinationLocated}}" location="{{destinationLocation}}">
+      <label>To</label>
+    </bsd-endpoint>
+    <bsd-distance-estimator origins="[[originStations]]"
+      destinations="[[destinationStations]]"
+      mode="bicycling">
     </bsd-distance-estimator>
     <google-maps-api id="api"
-      apiKey="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
+      api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       version="3.exp"></google-maps-api>
-    <template if="{{showMap}}">
-      <google-map map="{{map}}"
-        fitToMarkers=true
-        apiKey="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
-        latitude="{{startLat}}"
-        longitude="{{startLng}}"
-        zoomable=false>
-        <template if="{{$.origin.located}}">
-          <google-map-marker latitude="{{$.origin.endpointLocation.lat}}"
-            longitude="{{$.origin.endpointLocation.lng}}"
-            title="{{$.origin.endpointLocation.name}}"
-            icon="images/markers/origin.png">
-          </google-map-marker>
-        </template>
-        <template if="{{$.destination.located}}">
-          <google-map-marker latitude="{{$.destination.endpointLocation.lat}}"
-            longitude="{{$.destination.endpointLocation.lng}}"
-            title="{{$.destination.endpointLocation.name}}"
-            icon="images/markers/destination.png">
-          </google-map-marker>
-        </template>
-        <template repeat="{{station in originStations}}">
-          <google-map-marker latitude="{{station.lat}}"
-            longitude="{{station.lng}}"
-            title="{{station.name}}"
-            icon="images/markers/numbers-closed/number_{{station.bikes}}.png"
-            clickEvents=true
-            on-google-map-marker-click="{{onOriginMarkerClick}}">
-          </google-map-marker>
-        </template>
-        <template repeat="{{station in destinationStations}}">
-          <google-map-marker latitude="{{station.lat}}"
-            longitude="{{station.lng}}"
-            title="{{station.name}}"
-            icon="images/markers/numbers-open/number_{{station.docks}}.png"
-            clickEvents=true
-            on-google-map-marker-click="{{onDestinationMarkerClick}}">
-          </google-map-marker>
-        </template>
-      </google-map>
-      <google-map-directions map="{{map}}"
-        apiKey="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
-        startAddress="{{toLatLng($.origin.endpointLocation)}}"
-        endAddress="{{activeOriginStationLatLng}}"
-        travelMode="WALKING"
-        on-google-map-response="{{onMapResponse}}"
-        rendererOptions="{{walkingDirectionsOpts}}"
-        panel="{{$.firstpanel}}"></google-map-directions>
-      <google-map-directions map="{{map}}"
-        apiKey="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
-        startAddress="{{activeOriginStationLatLng}}"
-        endAddress="{{activeDestinationStationLatLng}}"
-        travelMode="BICYCLING"
-        rendererOptions="{{bikingDirectionsOpts}}"
-        panel="{{$.secondpanel}}"></google-map-directions>
-      <google-map-directions map="{{map}}"
-        apiKey="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
-        startAddress="{{activeDestinationStationLatLng}}"
-        endAddress="{{toLatLng($.destination.endpointLocation)}}"
-        travelMode="WALKING"
-        rendererOptions="{{walkingDirectionsOpts}}"
-        panel="{{$.thirdpanel}}"></google-map-directions>
-    </template>
+    <google-map map="{{map}}"
+      fit-to-markers="true"
+      api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
+      zoomable="false"
+      latitude="[[startLat]]"
+      longitude="[[startLng]]">
+      <template is="dom-if" if="{{originLocated}}">
+        <google-map-marker latitude="{{originLocation.lat}}"
+          longitude="{{originLocation.lng}}"
+          title="{{originLocation.name}}"
+          icon="images/markers/origin.png">
+        </google-map-marker>
+      </template>
+      <template is="dom-if" if="{{destinationLocated}}">
+        <google-map-marker latitude="{{destinationLocation.lat}}"
+          longitude="{{destinationLocation.lng}}"
+          title="{{destinationLocation.name}}"
+          icon="images/markers/destination.png">
+        </google-map-marker>
+      </template>
+      <template is="dom-repeat" items="{{originStations}}">
+        <google-map-marker latitude="{{item.lat}}"
+          longitude="{{item.lng}}"
+          title="{{item.name}}"
+          icon="{{computeIconPath(item, 'closed')}}"
+          click-events="true"
+          on-google-map-marker-click="onOriginMarkerClick">
+        </google-map-marker>
+      </template>
+      <template is= "dom-repeat" items="{{destinationStations}}">
+        <google-map-marker latitude="{{item.lat}}"
+          longitude="{{item.lng}}"
+          title="{{item.name}}"
+          icon="{{computeIconPath(item, 'open')}}"
+          click-events="true"
+          on-google-map-marker-click="onDestinationMarkerClick">
+        </google-map-marker>
+      </template>
+    </google-map>
+    <google-map-directions map="[[map]]"
+      api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
+      start-address="[[toLatLng(originLocation)]]"
+      end-address="[[activeOriginStationLatLng]]"
+      travel-mode="WALKING"
+      renderer-options="[[walkingDirectionsOpts]]"></google-map-directions>
+    <google-map-directions map="[[map]]"
+      api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
+      start-address="[[activeOriginStationLatLng]]"
+      end-address="[[activeDestinationStationLatLng]]"
+      travel-mode="BICYCLING"
+      renderer-options="[[bikingDirectionsOpts]]"></google-map-directions>
+    <google-map-directions map="[[map]]"
+      api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
+      start-address="[[activeDestinationStationLatLng]]"
+      end-address="[[toLatLng(destinationLocation)]]"
+      travel-mode="WALKING"
+      renderer-options="[[walkingDirectionsOpts2]]"></google-map-directions>
     <div id="firstpanel"></div>
     <div id="secondpanel"></div>
     <div id="thirdpanel"></div>
   </template>
+</dom-module>
   <script>
     Polymer({
-      ready: function() {
+      is: "bsd-main",
+      properties: {
+        originStations: {
+          type: Array,
+          observer: 'originStationsChanged'
+        },
+        destinationStations: {
+          type: Array,
+          observer: 'destinationStationsChanged'
+        }
+      },
+      attached: function() {
+        this.showMap = false;
         this.walkingDirectionsOpts =
           {
             suppressMarkers: true,
-            preserveViewport: true
+            preserveViewport: true,
+            panel: this.$.firstpanel
           };
         this.bikingDirectionsOpts = Object.create(this.walkingDirectionsOpts)
+        this.bikingDirectionsOpts.panel = this.$.secondpanel
         this.bikingDirectionsOpts.polylineOptions =
           {
             strokeColor: "red"
           };
+        this.walkingDirectionsOpts2 = Object.create(this.walkingDirectionsOpts)
+        this.walkingDirectionsOpts2.panel = this.$.thirdpanel
       },
       originStationsChanged: function() {
         if (this.originStations.length > 0) {
@@ -143,14 +162,16 @@
           return null;
         }
 
-        return new this.$.api.api.LatLng(place.lat, place.lng);
+        return place.lat.toString() + ',' + place.lng.toString();
       },
       onOriginMarkerClick: function(e) {
-        this.activeOriginStationLatLng = new this.$.api.api.LatLng(e.target.latitude, e.target.longitude);
+        this.activeOriginStationLatLng = e.target.latitude.toString() + ',' + e.target.longitude.toString();
       },
       onDestinationMarkerClick: function(e) {
         this.activeDestinationStationLatLng = new this.$.api.api.LatLng(e.target.latitude, e.target.longitude);
+      },
+      computeIconPath: function(station, dir) {
+        return 'images/markers/numbers-' + dir + '/number_' + station.docks + '.png'
       }
     });
   </script>
-</polymer-element>

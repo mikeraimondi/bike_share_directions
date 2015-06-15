@@ -1,27 +1,40 @@
 <link rel="import"
-  href="/bower_components/paper-input/paper-input-decorator.html">
+  href="/bower_components/paper-input/paper-input.html">
 <link rel="import"
   href="/bower_components/google-apis/google-maps-api.html">
 
 <link rel="import"
   href="/elements/bsd-globals/bsd-globals.html">
 
-<polymer-element name="bsd-geocoder"
-  attributes="location located label">
+<dom-module id="bsd-geocoder">
   <template>
     <bsd-globals id="globals"></bsd-globals>
     <google-maps-api id="maps"
-      apiKey="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
+      api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       version="3.exp"></google-maps-api>
-    <paper-input-decorator label="{{label}}"
-      isInvalid="{{located===false}}"
-      error="Please enter a recognized address">
-      <input id="geocodeInput" is="core-input" value="{{inputVal}}" required>
-    </paper-input-decorator>
+    <paper-input-container invalid="[[!located]]">
+      <content></content>
+      <input id="geocodeInput" is="iron-input" value="{{inputVal}}" placeholder="" required>
+      <paper-input-error>Please enter a recognized address</paper-input-error>
+    </paper-input-container>
   </template>
+</dom-module>
   <script>
     Polymer({
-      ready: function() {
+      is: "bsd-geocoder",
+      properties: {
+        location: {
+          type: Object,
+          notify: true,
+          readOnly: true
+        },
+        located:  {
+          type: Boolean,
+          notify: true,
+          readOnly: true
+        }
+      },
+      attached: function() {
         var self = this;
         this.$.maps.addEventListener('api-load', function() {
           self.autocomplete = new this.api.places.Autocomplete(
@@ -33,20 +46,18 @@
           this.api.event.addListener(self.autocomplete, 'place_changed', function() {
             var place = self.autocomplete.getPlace();
             if (place.geometry) {
-              self.location =
-                {
-                  lat: place.geometry.location.lat(),
-                  lng: place.geometry.location.lng(),
-                  name: place.name
-                };
-              self.located = true;
+              self._setLocation({
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                name: place.name
+              });
+              self._setLocated(true);
             } else {
-              self.location = null;
-              self.located = false;
+              self._setLocation(null);
+              self._setLocated(false);
             }
           });
         });
       },
     });
   </script>
-</polymer-element>

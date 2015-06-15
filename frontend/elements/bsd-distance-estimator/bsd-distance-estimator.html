@@ -1,21 +1,28 @@
 <link rel="import"
   href="/bower_components/google-apis/google-maps-api.html">
 
-<polymer-element name="bsd-distance-estimator" attributes="origins destinations mode">
+<dom-module id="bsd-distance-estimator">
   <template>
     <google-maps-api id="maps"
-      apiKey="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
-      version="3.exp">
+      api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
+      version="3.exp"></google-maps-api>
   </template>
+</dom-module>
   <script>
     Polymer({
-      origins: [],
-      destinations: [],
-      originsChanged: function() {
-        this.getDistances();
-      },
-      destinationsChanged: function() {
-        this.getDistances();
+      is: "bsd-distance-estimator",
+      properties: {
+        origins: {
+          type: Array,
+          value: [],
+          observer: 'getDistances'
+        },
+        destinations: {
+          type: Array,
+          value: [],
+          observer: 'getDistances'
+        },
+        mode: { type: String }
       },
       getDistances: function() {
         if (this.origins.length > 0 && this.destinations.length > 0) {
@@ -61,4 +68,3 @@
       }
     });
   </script>
-</polymer-element>

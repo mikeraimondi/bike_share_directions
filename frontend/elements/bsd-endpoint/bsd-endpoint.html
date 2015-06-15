@@ -1,44 +1,61 @@
 <link rel="import"
   href="/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import"
-  href="/bower_components/core-ajax/core-ajax.html">
+  href="/bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import"
   href="/elements/bsd-geocoder/bsd-geocoder.html">
 <link rel="import"
   href="/elements/bsd-distance-estimator/bsd-distance-estimator.html">
 
-<polymer-element name="bsd-endpoint" attributes="label stations">
+<dom-module id="bsd-endpoint">
   <template>
-    <template if="{{noResults}}">
+    <template is="dom-if" if="{{noResults}}">
       <div>No available bikes were found near this address</div>
     </template>
     <bsd-geocoder id="geocoder"
-      location="{{endpointLocation}}"
-      label="{{label}}"
+      location="{{location}}"
       located="{{located}}">
+      <content></content>
     </bsd-geocoder>
-    <core-ajax id="submitAJAX"
+    <iron-ajax id="submitAJAX"
       url="/query"
-      params='{"lat":"{{endpointLocation.lat}}", "lng":"{{endpointLocation.lng}}"}'
-      handleAs="json"
-      on-core-response="{{onResponse}}">
-    </core-ajax>
-    <bsd-distance-estimator origins="{{[endpointLocation]}}"
-      destinations="{{stations}}"
+      params="[[computeParams(location.lat, location.lng)]]"
+      on-response="onResponse">
+    </iron-ajax>
+    <bsd-distance-estimator origins="[[locationToAry(location)]]"
+      destinations="[[stations]]"
       mode="walking"
-      on-distance-response="{{onDistance}}">
+      on-distance-response="onDistance">
     </bsd-distance-estimator>
     <paper-spinner active="{{isLoading}}"></paper-spinner>
   </template>
+</dom-module>
   <script>
     Polymer({
-      stations: [],
+      is: "bsd-endpoint",
+      properties: {
+        stations: {
+          type: Array,
+          value: function() { return []; },
+          notify: true,
+          readOnly: true
+        },
+        located:  {
+          type: Boolean,
+          notify: true
+        },
+        location: {
+          type: Object,
+          observer: 'locationChanged',
+          notify: true
+        }
+      },
       noResults: false,
-      endpointLocationChanged: function() {
-        if (this.$.geocoder.located && this.endpointLocation) {
+      locationChanged: function(newLocation, oldLocation) {
+        if (newLocation) {
           this.isLoading = true;
-          this.$.submitAJAX.go();
+          this.$.submitAJAX.generateRequest();
         }
       },
       onResponse: function(e) {
@@ -46,7 +63,7 @@
           this.noResults = true;
           this.isLoading = false;
         } else {
-          this.stations = e.detail.response.map(function(station) {
+          var result = e.detail.response.map(function(station) {
             return {
                       lat: station.Lat,
                       lng: station.Lng,
@@ -55,11 +72,24 @@
                       docks: station.EmptyDocks
                    };
           });
+          this._setStations(result);
         }
       },
       onDistance: function(e) {
         this.isLoading = false;
+      },
+      computeParams: function(lat, lng) {
+        return {
+          lat: lat,
+          lng: lng
+        };
+      },
+      locationToAry: function(location) {
+        if (location) {
+          return [location];
+        } else {
+          return [];
+        }
       }
     });
   </script>
-</polymer-element>
