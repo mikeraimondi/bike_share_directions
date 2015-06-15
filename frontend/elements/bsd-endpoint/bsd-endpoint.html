@@ -10,7 +10,7 @@
 
 <dom-module id="bsd-endpoint">
   <template>
-    <template is="dom-if" if="{{noResults}}">
+    <template is="dom-if" if="[[noResults]]">
       <div>No available bikes were found near this address</div>
     </template>
     <bsd-geocoder id="geocoder"
@@ -28,7 +28,7 @@
       mode="walking"
       on-distance-response="onDistance">
     </bsd-distance-estimator>
-    <paper-spinner active="{{isLoading}}"></paper-spinner>
+    <paper-spinner active="[[isLoading]]"></paper-spinner>
   </template>
 </dom-module>
   <script>

@@ -14,12 +14,12 @@
       properties: {
         origins: {
           type: Array,
-          value: [],
+          value: function() { return []; },
           observer: 'getDistances'
         },
         destinations: {
           type: Array,
-          value: [],
+          value: function() { return []; },
           observer: 'getDistances'
         },
         mode: { type: String }
