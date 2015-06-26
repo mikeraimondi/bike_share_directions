@@ -1,11 +1,3 @@
-<link rel="import"
-  href="/bower_components/paper-input/paper-input.html">
-<link rel="import"
-  href="/bower_components/google-apis/google-maps-api.html">
-
-<link rel="import"
-  href="/elements/bsd-globals/bsd-globals.html">
-
 <dom-module id="bsd-geocoder">
   <template>
     <bsd-globals id="globals"></bsd-globals>
@@ -20,15 +12,16 @@
   </template>
 </dom-module>
   <script>
+    'use strict';
     Polymer({
-      is: "bsd-geocoder",
+      is: 'bsd-geocoder',
       properties: {
         location: {
           type: Object,
           notify: true,
           readOnly: true
         },
-        located:  {
+        located: {
           type: Boolean,
           notify: true,
           readOnly: true
@@ -40,7 +33,7 @@
           self.autocomplete = new this.api.places.Autocomplete(
             self.$.geocodeInput,
             { types: ['geocode'], componentRestrictions: {country: 'us'} });
-          self.$.globals.addEventListener('user.located', function(e) {
+          self.$.globals.addEventListener('user.located', function() {
             self.autocomplete.setBounds(this.bounds);
           });
           this.api.event.addListener(self.autocomplete, 'place_changed', function() {
@@ -58,6 +51,6 @@
             }
           });
         });
-      },
+      }
     });
   </script>

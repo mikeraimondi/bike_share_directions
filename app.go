@@ -9,8 +9,7 @@ import (
 )
 
 func main() {
-	http.Handle("/bower_components/", http.StripPrefix("/bower_components/", http.FileServer(http.Dir("bower_components"))))
-	http.Handle("/", http.FileServer(http.Dir("frontend")))
+	http.Handle("/", http.FileServer(http.Dir("dist")))
 
 	http.HandleFunc("/query", root)
 	// go func() {

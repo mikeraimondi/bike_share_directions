@@ -1,6 +1,3 @@
-<link rel="import"
-  href="/bower_components/google-apis/google-maps-api.html">
-
 <dom-module id="bsd-globals">
   <template>
     <google-maps-api id="maps"
@@ -10,10 +7,11 @@
 </dom-module>
   <script>
   (function() {
+    'use strict';
     var userCircle;
 
     Polymer({
-      is: "bsd-globals",
+      is: 'bsd-globals',
       properties: {
         lat: {
           type: Number,
@@ -24,7 +22,7 @@
           type: Number,
           value: -71.063228,
           notify: true
-        },
+        }
       },
       bounds: '',
       ready: function() {
@@ -58,7 +56,7 @@
             self.fire('user.located');
           });
         }
-      },
+      }
     });
   })();
   </script>

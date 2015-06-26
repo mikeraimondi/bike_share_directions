@@ -1,8 +1,8 @@
-bower_components/
-node_modules/
-.envrc
-gin-bin
-bike_share_directions
-web.json
-*.pem
+node_modules
+dist
+test/temp
+bower_components
+.tmp
+test/bower_components/
 deploy/cloud-config.yaml
+.envrc

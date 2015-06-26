@@ -1,6 +1,6 @@
 {
   "name": "bike_share_directions",
-  "version": "0.0.0",
+  "private": true,
   "homepage": "https://github.com/mikeraimondi/bike_share_directions",
   "authors": [
     "Michael Raimondi <mike@mikeraimondi.com>"
@@ -19,5 +19,9 @@
     "iron-input": "PolymerElements/iron-input#^1.0.0",
     "paper-input": "PolymerElements/paper-input#^1.0.0",
     "paper-spinner": "PolymerElements/paper-spinner#^1.0.0"
+  },
+  "devDependencies": {
+    "web-component-tester": "*",
+    "test-fixture": "PolymerElements/test-fixture#^1.0.0"
   }
 }

@@ -1,13 +1,3 @@
-<link rel="import"
-  href="/bower_components/paper-spinner/paper-spinner.html">
-<link rel="import"
-  href="/bower_components/iron-ajax/iron-ajax.html">
-
-<link rel="import"
-  href="/elements/bsd-geocoder/bsd-geocoder.html">
-<link rel="import"
-  href="/elements/bsd-distance-estimator/bsd-distance-estimator.html">
-
 <dom-module id="bsd-endpoint">
   <template>
     <template is="dom-if" if="[[noResults]]">
@@ -32,8 +22,9 @@
   </template>
 </dom-module>
   <script>
+    'use strict';
     Polymer({
-      is: "bsd-endpoint",
+      is: 'bsd-endpoint',
       properties: {
         stations: {
           type: Array,
@@ -41,7 +32,7 @@
           notify: true,
           readOnly: true
         },
-        located:  {
+        located: {
           type: Boolean,
           notify: true
         },
@@ -52,7 +43,7 @@
         }
       },
       noResults: false,
-      locationChanged: function(newLocation, oldLocation) {
+      locationChanged: function(newLocation) {
         if (newLocation) {
           this.isLoading = true;
           this.$.submitAJAX.generateRequest();
@@ -75,7 +66,7 @@
           this._setStations(result);
         }
       },
-      onDistance: function(e) {
+      onDistance: function() {
         this.isLoading = false;
       },
       computeParams: function(lat, lng) {

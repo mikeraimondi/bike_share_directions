@@ -2,7 +2,7 @@ FROM golang:1.4
 
 # Install Node deps
 RUN curl -sL https://deb.nodesource.com/setup | bash - \
-  && apt-get install -y nodejs \
+  && apt-get install -y nodejs bzip2 \
   && npm install npm -g \
   && adduser --disabled-password --gecos '' node
 USER node
@@ -23,6 +23,7 @@ RUN mkdir -p $project \
 WORKDIR $project
 COPY . $project
 RUN go install
+RUN node_modules/.bin/gulp
 
 ENTRYPOINT ["/go/bin/bike_share_directions"]
 

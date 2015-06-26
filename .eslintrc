@@ -1,0 +1,29 @@
+{
+  "env": {
+    "browser": true
+  },
+  "globals": {
+    "Polymer": false,
+    "google": false
+  },
+  "plugins": [
+    "html"
+  ],
+  "rules": {
+    "global-strict": 0,
+    "new-cap": [
+      2,
+      {
+        "capIsNewExceptions": [
+          "Polymer"
+        ]
+      }
+    ],
+    "no-underscore-dangle": 0,
+    "quotes": [
+      2,
+      "single",
+      "avoid-escape"
+    ]
+  }
+}
