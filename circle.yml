@@ -9,7 +9,7 @@ dependencies:
     - ~/bike_share_directions/node_modules
     - ~/bike_share_directions/bower_components
   post:
-    - CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' .
+    - CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -installsuffix netgo .
     - node_modules/.bin/bower install --config.interactive=false
     - node_modules/.bin/gulp
     - docker build -t mikeraimondi/bike_share_directions:$CIRCLE_SHA1 .
