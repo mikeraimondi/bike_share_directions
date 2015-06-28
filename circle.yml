@@ -6,8 +6,8 @@ machine:
 
 dependencies:
   cache_directories:
-    - node_modules
-    - bower_components
+    - ~/bike_share_directions/node_modules
+    - ~/bike_share_directions/bower_components
   post:
     - CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' .
     - node_modules/.bin/bower install --config.interactive=false
