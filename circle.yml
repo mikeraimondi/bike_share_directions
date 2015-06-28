@@ -1,0 +1,19 @@
+machine:
+  services:
+    - docker
+  environment:
+    - app_env: production
+
+dependencies:
+  pre:
+    - CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' .
+    - node_modules/.bin/bower install --config.interactive=false
+    - node_modules/.bin/gulp
+    - docker build -t mikeraimondi/bike-share-directions:$CIRCLE_SHA1 .
+
+deployment:
+  dockerhub:
+    branch: master
+    commands:
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker push mikeraimondi/bike-share-directions

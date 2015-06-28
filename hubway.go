@@ -68,7 +68,6 @@ func (s *Station) stringCoords() string {
 func getHubwayData(transport http.RoundTripper) (stations *StationList, err error) {
 	u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
 	u.Scheme = "https"
-	client := http.Client{Transport: transport}
 	resp, err := client.Get(u.String())
 	if err != nil {
 		return stations, err
