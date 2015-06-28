@@ -1,9 +1,15 @@
 <dom-module id="bsd-geocoder">
   <template>
     <bsd-globals id="globals"></bsd-globals>
+    <!-- @if APP_ENV=='production' !>
     <google-maps-api id="maps"
       api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       version="3.exp"></google-maps-api>
+    <!-- @endif -->
+    <!-- @if APP_ENV!='production' -->
+    <google-maps-api id="maps"
+      version="3.exp"></google-maps-api>
+    <!-- @endif -->
     <paper-input-container invalid="[[!located]]">
       <content></content>
       <input id="geocodeInput" is="iron-input" placeholder="" required>

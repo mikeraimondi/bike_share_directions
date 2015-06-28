@@ -1,8 +1,14 @@
 <dom-module id="bsd-distance-estimator">
   <template>
+    <!-- @if APP_ENV=='production' !>
     <google-maps-api id="maps"
       api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       version="3.exp"></google-maps-api>
+    <!-- @endif -->
+    <!-- @if APP_ENV!='production' -->
+    <google-maps-api id="maps"
+      version="3.exp"></google-maps-api>
+    <!-- @endif -->
   </template>
 </dom-module>
   <script>

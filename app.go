@@ -5,10 +5,19 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/exec"
 	"strconv"
 )
 
 func main() {
+	cmd := exec.Command("node_modules/.bin/gulp")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Fatal("Build failure: ", err)
+	}
+
 	http.Handle("/", http.FileServer(http.Dir("dist")))
 
 	http.HandleFunc("/query", root)

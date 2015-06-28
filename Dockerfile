@@ -20,10 +20,11 @@ RUN mkdir -p $project \
   && cp -a /tmp/node_modules $project \
   && cp -a /tmp/bower_components $project
 
+ENV APP_ENV=development
+
 WORKDIR $project
 COPY . $project
 RUN go install
-RUN node_modules/.bin/gulp
 
 ENTRYPOINT ["/go/bin/bike_share_directions"]
 

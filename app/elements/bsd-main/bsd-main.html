@@ -16,15 +16,30 @@
       destinations="[[destinationStations]]"
       mode="bicycling">
     </bsd-distance-estimator>
+    <!-- @if APP_ENV=='production' !>
     <google-maps-api id="api"
       api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       version="3.exp"></google-maps-api>
+    <!-- @endif -->
+    <!-- @if APP_ENV!='production' -->
+    <google-maps-api id="api"
+      version="3.exp"></google-maps-api>
+    <!-- @endif -->
+    <!-- @if APP_ENV=='production' !>
     <google-map map="{{map}}"
       fit-to-markers="true"
       api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       zoomable="false"
       latitude="[[startLat]]"
       longitude="[[startLng]]">
+    <!-- @endif -->
+    <!-- @if APP_ENV!='production' -->
+    <google-map map="{{map}}"
+      fit-to-markers="true"
+      zoomable="false"
+      latitude="[[startLat]]"
+      longitude="[[startLng]]">
+    <!-- @endif -->
       <template is="dom-if" if="{{originLocated}}">
         <google-map-marker latitude="[[originLocation.lat]]"
           longitude="[[originLocation.lng]]"
@@ -58,24 +73,51 @@
         </google-map-marker>
       </template>
     </google-map>
+    <!-- @if APP_ENV=='production' !>
     <google-map-directions map="[[map]]"
       api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       start-address="[[toLatLng(originLocation)]]"
       end-address="[[activeOriginStationLatLng]]"
       travel-mode="WALKING"
       renderer-options="[[walkingDirectionsOpts]]"></google-map-directions>
+    <!-- @endif -->
+    <!-- @if APP_ENV!='production' -->
+    <google-map-directions map="[[map]]"
+      start-address="[[toLatLng(originLocation)]]"
+      end-address="[[activeOriginStationLatLng]]"
+      travel-mode="WALKING"
+      renderer-options="[[walkingDirectionsOpts]]"></google-map-directions>
+    <!-- @endif -->
+    <!-- @if APP_ENV=='production' !>
     <google-map-directions map="[[map]]"
       api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       start-address="[[activeOriginStationLatLng]]"
       end-address="[[activeDestinationStationLatLng]]"
       travel-mode="BICYCLING"
       renderer-options="[[bikingDirectionsOpts]]"></google-map-directions>
+    <!-- @endif -->
+    <!-- @if APP_ENV!='production' -->
+    <google-map-directions map="[[map]]"
+      start-address="[[activeOriginStationLatLng]]"
+      end-address="[[activeDestinationStationLatLng]]"
+      travel-mode="BICYCLING"
+      renderer-options="[[bikingDirectionsOpts]]"></google-map-directions>
+    <!-- @endif -->
+    <!-- @if APP_ENV=='production' !>
     <google-map-directions map="[[map]]"
       api-key="AIzaSyCQZMy9TAgOF_6sizNtirP9AGdgsGVlBRY"
       start-address="[[activeDestinationStationLatLng]]"
       end-address="[[toLatLng(destinationLocation)]]"
       travel-mode="WALKING"
       renderer-options="[[walkingDirectionsOpts2]]"></google-map-directions>
+    <!-- @endif -->
+    <!-- @if APP_ENV!='production' -->
+    <google-map-directions map="[[map]]"
+      start-address="[[activeDestinationStationLatLng]]"
+      end-address="[[toLatLng(destinationLocation)]]"
+      travel-mode="WALKING"
+      renderer-options="[[walkingDirectionsOpts2]]"></google-map-directions>
+    <!-- @endif -->
     <div id="firstpanel"></div>
     <div id="secondpanel"></div>
     <div id="thirdpanel"></div>
