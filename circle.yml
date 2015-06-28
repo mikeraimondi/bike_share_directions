@@ -2,7 +2,7 @@ machine:
   services:
     - docker
   environment:
-    - app_env: production
+    app_env: production
 
 dependencies:
   pre:
