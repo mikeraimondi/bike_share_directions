@@ -23,6 +23,7 @@ func init() {
 }
 
 func main() {
+	log.Println("App server started")
 	http.Handle("/", http.FileServer(http.Dir("dist")))
 
 	http.HandleFunc("/query", root)

@@ -1,24 +1,22 @@
 machine:
   services:
     - docker
-  environment:
-    APP_ENV: production
 
 dependencies:
   cache_directories:
     - ~/bike_share_directions/node_modules
     - ~/bike_share_directions/bower_components
-  post:
-    - CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -installsuffix netgo .
-    - node_modules/.bin/bower install --config.interactive=false
-    - node_modules/.bin/gulp
-    - docker build -t mikeraimondi/bike_share_directions:$CIRCLE_SHA1 .
+
+test:
+  pre:
+    - APP_ENV=test ./build.sh
 
 deployment:
   dockerhub:
     branch: master
     commands:
-      - docker tag mikeraimondi/bike_share_directions:$CIRCLE_SHA1 mikeraimondi/bike_share_directions:latest
+      - APP_ENV=production ./build.sh
+      - docker tag mikeraimondi/bike_share_directions:latest mikeraimondi/bike_share_directions:$CIRCLE_SHA1
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
       - docker push mikeraimondi/bike_share_directions:$CIRCLE_SHA1
       - docker push mikeraimondi/bike_share_directions:latest
