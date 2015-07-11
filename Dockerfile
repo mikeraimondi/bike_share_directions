@@ -1,6 +1,6 @@
 FROM scratch
 
-COPY bike_share_directions /
+COPY app/backend/bike_share_directions /
 COPY dist /dist
 
 EXPOSE 80

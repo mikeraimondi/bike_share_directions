@@ -6,4 +6,3 @@ bower_components
 test/bower_components/
 deploy/cloud-config.yaml
 .envrc
-bike_share_directions
