@@ -26,6 +26,10 @@ deployment:
       - ssh circle@direct.bikeshare-directions.com -- etcdctl set /bsd_app/release_sha1 $CIRCLE_SHA1
       - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com stop bike-share-directions@1.service
       - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com start bike-share-directions@1.service
+      - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com stop bike-share-directions-presence@1.service
+      - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com start bike-share-directions-presence@1.service
       - sleep 10
       - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com stop bike-share-directions@2.service
       - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com start bike-share-directions@2.service
+      - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com stop bike-share-directions-presence@2.service
+      - fleetctl --strict-host-key-checking=false --ssh-username=circle --tunnel=direct.bikeshare-directions.com start bike-share-directions-presence@2.service
