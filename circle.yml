@@ -4,7 +4,7 @@ machine:
   pre:
     - git clone https://github.com/coreos/fleet.git
     - cd fleet/
-    - ./build
+    - /bin/bash build
     - sudo mv bin/fleetctl /usr/local/bin/
 
 dependencies:
