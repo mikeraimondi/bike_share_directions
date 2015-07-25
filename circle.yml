@@ -3,9 +3,7 @@ machine:
     - docker
   pre:
     - git clone https://github.com/coreos/fleet.git
-    - cd fleet/
-    - /bin/bash build
-    - sudo mv bin/fleetctl /usr/local/bin/
+    - cd fleet/ && ./build && sudo mv bin/fleetctl /usr/local/bin/
 
 dependencies:
   cache_directories:
