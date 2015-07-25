@@ -12,7 +12,7 @@ test:
     - APP_ENV=test ./build.sh
 
 deployment:
-  dockerhub:
+  production:
     branch: master
     commands:
       - APP_ENV=production ./build.sh
@@ -20,3 +20,9 @@ deployment:
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
       - docker push mikeraimondi/bike_share_directions:$CIRCLE_SHA1
       - docker push mikeraimondi/bike_share_directions:latest
+      - ssh circle@direct.bikeshare-directions.com -- etcdctl set /bsd_app/release_sha1 $CIRCLE_SHA1
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com stop bike-share-directions@1.service
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com start bike-share-directions@1.service
+      - sleep 10
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com stop bike-share-directions@2.service
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com start bike-share-directions@2.service
