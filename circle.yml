@@ -1,6 +1,11 @@
 machine:
   services:
     - docker
+  pre:
+    - git clone https://github.com/coreos/fleet.git
+    - cd fleet/
+    - ./build
+    - sudo mv bin/fleetctl /usr/local/bin/
 
 dependencies:
   cache_directories:
@@ -20,12 +25,9 @@ deployment:
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
       - docker push mikeraimondi/bike_share_directions:$CIRCLE_SHA1
       - docker push mikeraimondi/bike_share_directions:latest
-      - git clone https://github.com/coreos/fleet.git
-      - cd fleet/
-      - ./build
       - ssh circle@direct.bikeshare-directions.com -- etcdctl set /bsd_app/release_sha1 $CIRCLE_SHA1
-      - /home/ubuntu/fleet/bin/fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com stop bike-share-directions@1.service
-      - /home/ubuntu/fleet/bin/fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com start bike-share-directions@1.service
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com stop bike-share-directions@1.service
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com start bike-share-directions@1.service
       - sleep 10
-      - /home/ubuntu/fleet/bin/fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com stop bike-share-directions@2.service
-      - /home/ubuntu/fleet/bin/fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com start bike-share-directions@2.service
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com stop bike-share-directions@2.service
+      - fleetctl --ssh-username circle --tunnel direct.bikeshare-directions.com start bike-share-directions@2.service
