@@ -2,11 +2,14 @@ package main
 
 import (
 	"encoding/xml"
+	"io/ioutil"
+	"log"
 	"math"
-	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
+
+	"github.com/garyburd/redigo/redis"
 )
 
 // A StationList is a collection of Hubway stations
@@ -65,14 +68,36 @@ func (s *Station) stringCoords() string {
 }
 
 // TODO extract to library
-func getHubwayData(transport http.RoundTripper) (stations *StationList, err error) {
-	u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
-	u.Scheme = "https"
-	resp, err := client.Get(u.String())
+func getHubwayData() (stations *StationList, err error) {
+	redisConn := redisPool.Get()
+	defer redisConn.Close()
+	exists, err := redis.Bool(redisConn.Do("EXISTS", "hubwayData"))
 	if err != nil {
 		return stations, err
 	}
-	if err := xml.NewDecoder(resp.Body).Decode(&stations); err != nil {
+	var hubwayData []byte
+	if exists {
+		hubwayData, err = redis.Bytes(redisConn.Do("GET", "hubwayData"))
+		if err != nil {
+			return stations, err
+		}
+		log.Println("Hubway cache hit")
+	} else {
+		log.Println("Hubway cache miss")
+		u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
+		u.Scheme = "https"
+		resp, err := client.Get(u.String())
+		if err != nil {
+			return stations, err
+		}
+		if hubwayData, err = ioutil.ReadAll(resp.Body); err != nil {
+			return stations, err
+		}
+		if _, err := redisConn.Do("SET", "hubwayData", hubwayData, "EX", 60, "NX"); err != nil {
+			return stations, err
+		}
+	}
+	if err := xml.Unmarshal(hubwayData, &stations); err != nil {
 		return stations, err
 	}
 	return stations, nil

@@ -9,11 +9,15 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
+
+	"github.com/garyburd/redigo/redis"
 )
 
 var (
-	client   *http.Client
-	httpPort = os.Getenv("HTTPPORT")
+	client    *http.Client
+	httpPort  = os.Getenv("HTTP_PORT")
+	redisPool *redis.Pool
 )
 
 func init() {
@@ -24,6 +28,12 @@ func init() {
 			TLSClientConfig: &tls.Config{RootCAs: pool},
 		},
 	}
+
+	var redisServer = os.Getenv("REDIS_SERVER")
+	if len(redisServer) == 0 {
+		redisServer = ":6379"
+	}
+	redisPool = newRedisPool(redisServer, os.Getenv("REDIS_PASSWORD"))
 }
 
 func main() {
@@ -47,6 +57,30 @@ func main() {
 	}
 }
 
+func newRedisPool(server, password string) *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", server)
+			if err != nil {
+				return nil, err
+			}
+			if len(password) > 0 {
+				if _, err := c.Do("AUTH", password); err != nil {
+					c.Close()
+					return nil, err
+				}
+			}
+			return c, err
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
+	}
+}
+
 func root(w http.ResponseWriter, r *http.Request) {
 	lng, err := strconv.ParseFloat(r.FormValue("lng"), 64)
 	if err != nil {
@@ -60,7 +94,7 @@ func root(w http.ResponseWriter, r *http.Request) {
 	}
 	point := GeoPoint{Lat: lat, Lng: lng}
 	// TODO cache
-	stations, err := getHubwayData(&http.Transport{})
+	stations, err := getHubwayData()
 	if err != nil {
 		log.Panicf("error getting Hubway station data: %v", err)
 		return
