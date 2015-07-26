@@ -7,10 +7,14 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 )
 
-var client *http.Client
+var (
+	client   *http.Client
+	httpPort = os.Getenv("HTTPPORT")
+)
 
 func init() {
 	pool := x509.NewCertPool()
@@ -35,7 +39,10 @@ func main() {
 	// if err := http.ListenAndServe(":"+insecurePort, http.HandlerFunc(secureRedirect)); err != nil {
 	// 	log.Fatal("ListenAndServe: ", err)
 	// }
-	if err := http.ListenAndServe(":80", nil); err != nil {
+	if len(httpPort) == 0 {
+		httpPort = "80"
+	}
+	if err := http.ListenAndServe(":"+httpPort, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
