@@ -1,7 +1,7 @@
-node_modules
-dist
-test/temp
-bower_components
-.tmp
+node_modules/
+dist/
+test/temp/
+bower_components/
+.tmp/
 test/bower_components/
-deploy/cloud-config*.yaml
+bsd

@@ -29,11 +29,32 @@ func init() {
 		},
 	}
 
-	var redisServer = os.Getenv("REDIS_SERVER")
-	if len(redisServer) == 0 {
-		redisServer = ":6379"
+	redisPool = &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			redisServer := os.Getenv("REDIS_SERVER")
+			if len(redisServer) == 0 {
+				redisServer = ":6379"
+			}
+			c, err := redis.Dial("tcp", redisServer)
+			if err != nil {
+				return nil, err
+			}
+			password := os.Getenv("REDIS_PASSWORD")
+			if len(password) > 0 {
+				if _, err := c.Do("AUTH", password); err != nil {
+					c.Close()
+					return nil, err
+				}
+			}
+			return c, err
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
 	}
-	redisPool = newRedisPool(redisServer, os.Getenv("REDIS_PASSWORD"))
 }
 
 func main() {
@@ -54,30 +75,6 @@ func main() {
 	}
 	if err := http.ListenAndServe(":"+httpPort, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
-	}
-}
-
-func newRedisPool(server, password string) *redis.Pool {
-	return &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", server)
-			if err != nil {
-				return nil, err
-			}
-			if len(password) > 0 {
-				if _, err := c.Do("AUTH", password); err != nil {
-					c.Close()
-					return nil, err
-				}
-			}
-			return c, err
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
 	}
 }
 

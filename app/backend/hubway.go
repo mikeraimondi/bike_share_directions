@@ -12,6 +12,12 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+// A GeoPoint is a coordinate
+type GeoPoint struct {
+	Lat float64
+	Lng float64
+}
+
 // A StationList is a collection of Hubway stations
 type StationList struct {
 	Stations []Station `xml:"station"`
