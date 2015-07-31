@@ -39,7 +39,7 @@ func init() {
 			}
 			c, err := redis.Dial("tcp", redisServer)
 			if err != nil {
-				return nil, err
+				return stupidCacheConn{}, nil
 			}
 			password := os.Getenv("REDIS_PASSWORD")
 			if len(password) > 0 {
