@@ -77,18 +77,11 @@ func (s *Station) stringCoords() string {
 func getHubwayData() (stations *StationList, err error) {
 	redisConn := redisPool.Get()
 	defer redisConn.Close()
-	exists, err := redis.Bool(redisConn.Do("EXISTS", "hubwayData"))
-	if err != nil {
+	hubwayData, err := redis.Bytes(redisConn.Do("GET", "hubwayData"))
+	if err != nil && err.Error() != "redigo: nil returned" {
 		return stations, err
 	}
-	var hubwayData []byte
-	if exists {
-		hubwayData, err = redis.Bytes(redisConn.Do("GET", "hubwayData"))
-		if err != nil {
-			return stations, err
-		}
-		log.Println("Hubway cache hit")
-	} else {
+	if len(hubwayData) == 0 {
 		log.Println("Hubway cache miss")
 		u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
 		u.Scheme = "https"
