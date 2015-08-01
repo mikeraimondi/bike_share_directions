@@ -39,7 +39,10 @@ func init() {
 			}
 			c, err := redis.Dial("tcp", redisServer)
 			if err != nil {
-				return stupidCacheConn{}, nil
+				log.Println("Error connecting to Redis: " + err.Error() + " - Falling back to local cache")
+				return stupidCacheConn{
+					AllowedKeys: []string{"hubwayData"},
+				}, nil
 			}
 			password := os.Getenv("REDIS_PASSWORD")
 			if len(password) > 0 {
