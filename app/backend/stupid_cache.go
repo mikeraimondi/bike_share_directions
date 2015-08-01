@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -33,20 +34,28 @@ func (conn stupidCacheConn) Do(commandName string, args ...interface{}) (reply i
 			return nil, err
 		}
 		stupidCache[args[0].(string)] = args[1].([]byte)
-		// TODO iterate over args, find any that match
-		if args[2] == "EX" {
-			time.AfterFunc(time.Duration(args[3].(int))*time.Second, func() {
-				stupidCache[args[0].(string)] = nil
-			})
+		parseEX := false
+		for _, arg := range args[2:] {
+			if arg == "EX" {
+				parseEX = true
+			} else if parseEX {
+				parseEX = false
+				time.AfterFunc(time.Duration(arg.(int))*time.Second, func() {
+					stupidCache[args[0].(string)] = nil
+				})
+			} else if arg == "NX" {
+				// noop
+			} else {
+				return reply, fmt.Errorf("Option %v is not supported by local cache", arg)
+			}
 		}
-		// TODO NX
 		return reply, nil
 	}
-	return reply, errors.New("Command " + commandName + "not supported by local cache")
+	return reply, fmt.Errorf("Command %v is not supported by local cache", commandName)
 }
 
 func (conn stupidCacheConn) Send(commandName string, args ...interface{}) error {
-	return errors.New("'Send' not supported by local cache")
+	return errors.New("'Send' is not supported by local cache")
 }
 
 func (conn stupidCacheConn) Flush() error {
@@ -54,7 +63,7 @@ func (conn stupidCacheConn) Flush() error {
 }
 
 func (conn stupidCacheConn) Receive() (reply interface{}, err error) {
-	return reply, errors.New("'Receive' not supported by local cache")
+	return reply, errors.New("'Receive' is not supported by local cache")
 }
 
 func checkIfKeyAllowed(key string, keyWhitelist []string) (err error) {
@@ -63,5 +72,5 @@ func checkIfKeyAllowed(key string, keyWhitelist []string) (err error) {
 			return nil
 		}
 	}
-	return errors.New("Key " + " is not whitelisted for use in local cache")
+	return fmt.Errorf("Key %v is not whitelisted for use in local cache", key)
 }
