@@ -1,4 +1,4 @@
-FROM scratch
+FROM centurylink/ca-certs
 
 COPY app/backend/bike_share_directions /
 COPY dist /dist

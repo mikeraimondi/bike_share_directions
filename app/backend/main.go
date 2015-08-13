@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"log"
 	"net"
@@ -21,13 +19,7 @@ var (
 )
 
 func init() {
-	pool := x509.NewCertPool()
-	pool.AppendCertsFromPEM(pemCerts)
-	client = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{RootCAs: pool},
-		},
-	}
+	client = &http.Client{}
 
 	redisPool = &redis.Pool{
 		MaxIdle:     3,
