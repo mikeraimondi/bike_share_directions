@@ -1,0 +1,39 @@
+application: bikeshare-directions
+version: alpha-001
+runtime: go
+api_version: go1
+
+handlers:
+- url: /
+  static_files: index.html
+  upload: index.html
+
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon.ico
+
+- url: /manifest.json
+  static_files: manifest.json
+  upload: manifest.json
+
+- url: /precache.json
+  static_files: precache.json
+  upload: precache.json
+
+- url: /bower_components
+  static_dir: bower_components
+
+- url: /elements
+  static_dir: elements
+
+- url: /images
+  static_dir: images
+
+- url: /scripts
+  static_dir: scripts
+
+- url: /styles
+  static_dir: styles
+
+- url: /.*
+  script: _go_app

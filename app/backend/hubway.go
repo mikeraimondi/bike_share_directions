@@ -5,11 +5,13 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
-	"net/url"
 	"sort"
-	"strconv"
+	"time"
 
-	"github.com/garyburd/redigo/redis"
+	"appengine/memcache"
+	"appengine/urlfetch"
+
+	"appengine"
 )
 
 // A GeoPoint is a coordinate
@@ -69,34 +71,30 @@ func (sl *StationList) closestStationsTo(point *GeoPoint, count int) []Station {
 	return sl.Stations[0:count]
 }
 
-func (s *Station) stringCoords() string {
-	return strconv.FormatFloat(s.Lat, 'f', -1, 64) + "," + strconv.FormatFloat(s.Lng, 'f', -1, 64)
-}
-
 // TODO extract to library
-func getHubwayData() (stations *StationList, err error) {
-	redisConn := redisPool.Get()
-	defer redisConn.Close()
-	hubwayData, err := redis.Bytes(redisConn.Do("GET", "hubwayData"))
-	if err != nil && err.Error() != "redigo: nil returned" {
-		return stations, err
-	}
-	if len(hubwayData) == 0 {
+func getHubwayData(c appengine.Context) (stations *StationList, err error) {
+	hubwayData, err := memcache.Get(c, "hubwayData")
+	if err == memcache.ErrCacheMiss {
 		log.Println("Hubway cache miss")
-		u, _ := url.Parse("www.thehubway.com/data/stations/bikeStations.xml")
-		u.Scheme = "https"
-		resp, err := client.Get(u.String())
+		client := urlfetch.Client(c)
+		resp, err := client.Get("https://www.thehubway.com/data/stations/bikeStations.xml")
 		if err != nil {
 			return stations, err
 		}
-		if hubwayData, err = ioutil.ReadAll(resp.Body); err != nil {
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
 			return stations, err
 		}
-		if _, err := redisConn.Do("SET", "hubwayData", hubwayData, "EX", 60, "NX"); err != nil {
+		hubwayData = &memcache.Item{
+			Key:        "hubwayData",
+			Value:      data,
+			Expiration: time.Minute,
+		}
+		if err := memcache.Set(c, hubwayData); err != nil {
 			return stations, err
 		}
 	}
-	if err := xml.Unmarshal(hubwayData, &stations); err != nil {
+	if err := xml.Unmarshal(hubwayData.Value, &stations); err != nil {
 		return stations, err
 	}
 	return stations, nil

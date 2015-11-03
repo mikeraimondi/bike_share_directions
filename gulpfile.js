@@ -83,10 +83,16 @@ gulp.task('copy', function () {
   var app = gulp.src([
     'app/*',
     '!app/test',
-    '!app/precache.json'
+    '!app/precache.json',
+    '!app/backend'
   ], {
     dot: true
   }).pipe(gulp.dest('dist'));
+
+  var backend = gulp.src([
+    'app/backend/**/*',
+    'app.yaml'
+  ]).pipe(gulp.dest('dist'))
 
   var bower = gulp.src([
     'bower_components/**/*'
